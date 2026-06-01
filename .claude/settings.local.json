@@ -9,7 +9,12 @@
       "Bash(git remote *)",
       "Bash(git push *)",
       "Bash(git pull *)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "PowerShell(Copy-Item \"e:\\\\thesis\\\\content\\\\PCB_3D.png\" \"e:\\\\thesis\\\\figures\\\\pcb_3d.png\")",
+      "PowerShell(Get-Command pdflatex -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-Command latexmk -ErrorAction SilentlyContinue)",
+      "PowerShell(winget install --id tectonic-typesetting.tectonic -e --accept-package-agreements --accept-source-agreements 2>&1)",
+      "PowerShell(Tail -20)"
     ]
   }
 }

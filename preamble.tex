@@ -17,6 +17,7 @@
 \onehalfspacing
 
 % ---------- Header / footer ----------
+\setlength{\headheight}{14pt}
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 \fancyhf{}
@@ -53,12 +54,16 @@
 \usepackage{multirow}
 
 % ---------- Mathematics ----------
-\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{amsmath,amsfonts}
+\let\Bbbk\relax
+\usepackage{amssymb}
 
 % ---------- Chemistry ----------
 \usepackage[version=4]{mhchem}
 \usepackage{siunitx}
 \sisetup{detect-all, range-phrase=--}
+\DeclareSIUnit\molar{M}
+\DeclareSIUnit\decade{decade}
 
 % ---------- Colors ----------
 \usepackage[dvipsnames]{xcolor}
@@ -91,12 +96,14 @@
 \bibliographystyle{unsrtnat}
 
 % ---------- Miscellaneous ----------
-\usepackage{microtype}
+\usepackage[protrusion=true,expansion=false]{microtype}
 \usepackage{enumitem}
 \usepackage{emptypage}
 \usepackage{pdfpages}
 
 % ---------- Custom shorthands ----------
+\renewcommand{\texttildelow}{\raisebox{-0.5ex}{\textasciitilde}}
+\newcommand{\rupee}{\textsf{Rs}}
 \newcommand{\ferrocene}{\ce{[Fe(CN)6]^{3-/4-}}}
 \newcommand{\ruhex}{\ce{[Ru(NH3)6]^{3+/2+}}}
 \newcommand{\LOD}{limit of detection}
