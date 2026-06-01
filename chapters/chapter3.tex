@@ -4,9 +4,16 @@
 \section{Overview of the System Architecture}
 \label{sec:architecture}
 
-The amperometric device developed in this work is a self-contained, portable instrument that integrates hardware, firmware, and software into a single handheld unit. Figure~\ref{fig:block_diagram} presents the block diagram of the complete system, illustrating the four major subsystems: (i) the electrochemical front-end (potential control and current measurement circuits); (ii) the microcontroller unit (ESP32-WROOM-32E) responsible for orchestrating the experiment, digitising the TIA output, and hosting the web server; (iii) the power management subsystem (battery charger, LDO regulators); and (iv) the web-based user interface accessible from any Wi-Fi-enabled device.
+The amperometric device, designated \textbf{SUPRANK\_V1}, is a self-contained, portable instrument that integrates hardware, firmware, and software into a single handheld unit. Figure~\ref{fig:pcb_photo} shows a 3D render of the fabricated SUPRANK\_V1 PCB. The system comprises four major subsystems: (i) the electrochemical front-end (potential control and current measurement circuits); (ii) the microcontroller unit (ESP32-WROOM-32E) responsible for orchestrating the experiment, digitising the TIA output, and hosting the web server; (iii) the power management subsystem (battery charger, LDO regulators); and (iv) the web-based user interface accessible from any Wi-Fi-enabled device.
 
-\placefig{0.85\textwidth}{Block diagram of the amperometric device showing the four major subsystems: electrochemical front-end, ESP32 MCU, power management, and web-based user interface. Arrows indicate data flow and control signals.}{fig:block_diagram}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.75\textwidth]{pcb_3d.png}
+  \caption{3D render of the SUPRANK\_V1 PCB showing the ESP32-WROOM-32E module (top-left), AD5667R DAC, AD8608 quad op-amp, dual LDO regulators, MCP73831 charge IC, power jack, battery connector, slide switch, and status LEDs.}
+  \label{fig:pcb_photo}
+\end{figure}
+
+\placefig{0.85\textwidth}{Block diagram of the SUPRANK\_V1 system showing the four major subsystems: electrochemical front-end, ESP32 MCU, power management, and web-based user interface. Arrows indicate data flow and control signals.}{fig:block_diagram}
 
 \section{Hardware Design}
 \label{sec:hardware}
