@@ -1,0 +1,277 @@
+\chapter{Materials and Methods}
+\label{ch:methods}
+
+\section{Overview of the System Architecture}
+\label{sec:architecture}
+
+The amperometric device developed in this work is a self-contained, portable instrument that integrates hardware, firmware, and software into a single handheld unit. Figure~\ref{fig:block_diagram} presents the block diagram of the complete system, illustrating the four major subsystems: (i) the electrochemical front-end (potential control and current measurement circuits); (ii) the microcontroller unit (ESP32-WROOM-32E) responsible for orchestrating the experiment, digitising the TIA output, and hosting the web server; (iii) the power management subsystem (battery charger, LDO regulators); and (iv) the web-based user interface accessible from any Wi-Fi-enabled device.
+
+\placefig{0.85\textwidth}{Block diagram of the amperometric device showing the four major subsystems: electrochemical front-end, ESP32 MCU, power management, and web-based user interface. Arrows indicate data flow and control signals.}{fig:block_diagram}
+
+\section{Hardware Design}
+\label{sec:hardware}
+
+\subsection{Microcontroller: ESP32-WROOM-32E}
+\label{subsec:esp32}
+
+The central processing unit of the device is the \textbf{ESP32-WROOM-32E} module (Espressif Systems, LCSC part C701341), which houses the ESP32-D0WD-V3 dual-core 32-bit Xtensa LX6 CPU operating at up to 240\,MHz. The module provides 4\,MB of embedded SPI flash memory, 520\,kB of SRAM, and integrates a complete IEEE 802.11\,b/g/n (2.4\,GHz) Wi-Fi radio with an on-board PCB trace antenna. It supports 34 programmable GPIO pins, two 12-bit ADC arrays (SAR ADC, up to 18 channels), multiple UART, SPI, I$^2$C, and I$^2$S peripherals, and a hardware PWM controller. The module operates from a 3.3\,V supply and is rated at \texttildelow 80\,mA average and up to 240\,mA peak during Wi-Fi transmission.
+
+In the present design, the ESP32 performs three critical functions:
+\begin{enumerate}
+    \item \textbf{DAC control:} Issues SPI commands to the AD5667R DAC to set the cell potential.
+    \item \textbf{ADC measurement:} Samples the TIA output voltage through an internal 12-bit SAR ADC channel.
+    \item \textbf{Web server:} Hosts the AsyncWebServer and WebSocket server, streaming real-time data to the connected client.
+\end{enumerate}
+
+\subsection{Potential Control: AD5667R 16-bit DAC}
+\label{subsec:dac}
+
+Precise and stable potential control is the most critical requirement of a potentiostat. The \textbf{AD5667R} (Analog Devices, LCSC part C650006) is a dual-channel, 16-bit, voltage-output DAC in an MSOP-10 package. Its key specifications are:
+\begin{itemize}
+    \item Resolution: 16 bits (65536 codes over a 2.5\,V or 5\,V reference span)
+    \item INL/DNL: $\pm 1$\,LSB (max)
+    \item Output voltage range: 0 to $V_\mathrm{ref}$ (unipolar) or $\pm V_\mathrm{ref}/2$ (with op-amp inversion)
+    \item Communication: I$^2$C or SPI (hardware-selectable via pin)
+    \item Power supply: 2.7--5.5\,V
+    \item On-chip 2.5\,V reference: yes (enabled by default in firmware)
+\end{itemize}
+Channel A of the DAC generates the desired electrode potential $E_\mathrm{set}$. The raw DAC output (0--2.5\,V) is level-shifted and amplified by the op-amp gain network (resistors R8--R11; see Section~\ref{subsec:opamp}) to achieve the required potential range. Channel B of the DAC is reserved for future use (e.g.\ bipotentiostat operation).
+
+The relationship between the digital code $D$ and the output potential $E_\mathrm{set}$ after the gain network is:
+\begin{equation}
+    E_\mathrm{set} = \left(\frac{D}{2^{16} - 1}\right) \cdot V_\mathrm{FS} \cdot G_\mathrm{amp}
+    \label{eq:dac_transfer}
+\end{equation}
+where $V_\mathrm{FS}$ is the DAC full-scale voltage (2.5\,V) and $G_\mathrm{amp}$ is the op-amp gain factor. With the component values chosen (see Section~\ref{subsec:opamp}), this achieves a potential resolution of \texttildelow{}0.1\,mV per DAC step over the full operating range.
+
+\subsection{Current Measurement: AD8608 Quad Precision Op-Amp and TIA}
+\label{subsec:opamp}
+
+The \textbf{AD8608ARUZ} (Analog Devices, LCSC part C578776) is a quad-channel, single-supply precision CMOS operational amplifier in a TSSOP-14 package. Its salient specifications relevant to TIA design are:
+\begin{itemize}
+    \item Input offset voltage: $V_\mathrm{os} = 65\,\mu\text{V}$ (typical), $250\,\mu\text{V}$ (max)
+    \item Input bias current: $I_\mathrm{b} = 1\,\text{pA}$ (typical)
+    \item Gain-bandwidth product (GBW): 10\,MHz
+    \item Rail-to-rail input and output
+    \item Supply voltage: 2.7--5\,V (single supply)
+    \item Noise: $e_n = 8\,\text{nV}/\sqrt{\text{Hz}}$ at 1\,kHz
+\end{itemize}
+The ultra-low input bias current (1\,pA typical) is critical: bias current directly adds to the measured cell current, introducing a fixed offset. At nano-ampere current levels, an op-amp with $I_\mathrm{b} = 1$\,nA (typical JFET op-amp) would introduce an intolerable $\sim$100\% offset.
+
+The four op-amp stages within the AD8608 are allocated as follows:
+\begin{itemize}
+    \item \textbf{U11-A:} Voltage follower for the reference electrode (RE buffer). The high input impedance ensures negligible current draw from the RE, maintaining a stable reference potential.
+    \item \textbf{U11-B:} Control amplifier (error amplifier). Compares the desired potential (from the DAC, buffered through U11-C) with the measured RE potential and drives the counter electrode (CE) to minimise the error.
+    \item \textbf{U11-C:} Unity-gain buffer for the DAC output.
+    \item \textbf{U11-D:} Transimpedance amplifier. The working electrode is connected to the inverting input (virtual ground). The gain-switching feedback resistor ($R_f$, selected by the MAX4643/MAX4644 switches; see Section~\ref{subsec:switches}) converts the cell current to a proportional output voltage: $V_\mathrm{TIA} = -i_\mathrm{cell} \cdot R_f$.
+\end{itemize}
+
+\subsubsection{Gain Resistor Values and Current Ranges}
+
+The TIA feedback resistor $R_f$ is selected from four values by the analogue switch network, providing the following current ranges:
+
+\begin{table}[H]
+\centering
+\caption{TIA gain resistors and corresponding current ranges.}
+\label{tab:tia_ranges}
+\begin{tabular}{@{}cccc@{}}
+\toprule
+\textbf{Range} & $R_f$ (\si{\kilo\ohm}) & \textbf{Full-scale current} & \textbf{Resolution (12-bit ADC)} \\
+\midrule
+1 & 845 (R9)      & \SIrange{0}{1}{\micro\ampere}   & \SI{0.24}{\nano\ampere}  \\
+2 & 8.06 (R11)    & \SIrange{0}{10}{\micro\ampere}  & \SI{2.4}{\nano\ampere}   \\
+3 & 16.2 (R8)     & \SIrange{0}{50}{\micro\ampere}  & \SI{12}{\nano\ampere}    \\
+4 & 29.4 (R10)    & \SIrange{0}{100}{\micro\ampere} & \SI{24}{\nano\ampere}    \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent The full-scale current is defined by $I_\text{max} = V_\text{DD}/R_f$ (3.3\,V supply). Range 1 is used for low-concentration analyte measurements, while Range 4 is used for high-concentration validation with ferri/ferrocyanide.
+
+\subsection{Range Switching: MAX4643 and MAX4644 Analogue Switches}
+\label{subsec:switches}
+
+The four TIA feedback resistors are selected by a combination of one \textbf{MAX4643EUA+} dual-single-pole double-throw (SPDT) analogue switch (Analog Devices/Maxim, LCSC part C1546042) and one \textbf{TPMAX4644EUT+T} single-SPDT switch (Tech Public, LCSC part C4244903). These switches have:
+\begin{itemize}
+    \item On-resistance: $R_\mathrm{on} \approx 4.5\,\Omega$ (negligible compared to $R_f$ in k\Omega range)
+    \item Off-isolation: $>$100\,dB at 1\,kHz
+    \item Charge injection: $<$5\,pC
+    \item Supply voltage: 2.7--5.5\,V (compatible with 3.3\,V digital control from ESP32)
+\end{itemize}
+The ESP32 drives the switch select pins (GPIO) to configure the active $R_f$ value. Range selection is performed before the potential step in the firmware chronoamperometry routine.
+
+\subsection{Power Management Subsystem}
+\label{subsec:power}
+
+\subsubsection{Battery and Charging}
+
+The device is powered by a 9\,V alkaline battery (BT1, connector C703374) connected via a DC barrel jack (POWER-JACK, C9900001795) and a slide switch (SK-12D02-VG5, LCSC part C136722) for on/off control. A dedicated lithium-polymer battery charging IC, the \textbf{MCP73831T-2ATI/OT} (Microchip Technology, LCSC part C14879), provides a constant-current/constant-voltage charging profile for an optional LiPo cell.  The MCP73831 handles pre-conditioning, constant-current fast charge, and top-off charge with a programmable charge current (set by R13 = 220\,$\Omega$, yielding $I_\mathrm{set} = 1000/R13 \approx 4.5$\,mA; adjustable for larger cells).
+
+\subsubsection{Low-Dropout Regulators}
+
+Two \textbf{MIC5205-3.3YM5} LDO regulators (Microchip, LCSC part C37970), each in a SOT-23-5 package, provide independent 3.3\,V regulated supply rails for the analogue and digital domains:
+\begin{itemize}
+    \item \textbf{3.3V\_LDO\_1 (Analogue rail):} Powers the AD5667R DAC and the AD8608 op-amp array. Decoupled with 4.7\,$\mu$F (C1) and 10\,$\mu$F (C3) at the output.
+    \item \textbf{3.3V\_LDO\_2 (Digital rail):} Powers the ESP32-WROOM-32E and the MAX4643/MAX4644 switch control logic. Decoupled with 4.7\,$\mu$F (C2) and 10\,$\mu$F (C6) at the output.
+\end{itemize}
+The MIC5205 is specified for a maximum input voltage of 16\,V, a maximum output current of 150\,mA, and a dropout voltage of 325\,mV at 150\,mA, making it compatible with the 9\,V supply.
+
+\subsubsection{Status LEDs}
+
+Two red LEDs (EVERLIGHT 19-217/R6C-AL1M2VY/3T, LCSC part C72044) indicate device status. LED1 (anode via R1 = 470\,$\Omega$) is the power-on indicator. LED2 (via R2 = 2\,k$\Omega$) indicates active data acquisition.
+
+\subsection{PCB Design and Fabrication}
+\label{subsec:pcb}
+
+\subsubsection{Schematic Capture and PCB Layout}
+
+The complete circuit was schematically captured and routed using \textbf{EasyEDA} (LCSC/JLCPCB online EDA tool). The PCB is a 2-layer FR4 board with the following key design decisions:
+
+\begin{itemize}
+    \item \textbf{Layer stack:} Top copper (signal and components) + Bottom copper (largely ground pour).
+    \item \textbf{Star-point grounding:} Analogue ground (AGND) and digital ground (DGND) are kept separate throughout the board routing. AGND covers the DAC, op-amp, and electrode connector regions. DGND covers the ESP32, LDO digital rail, and switch control lines. The two ground planes are joined at a single node (star point) adjacent to the input decoupling capacitors of the LDO regulators. This topology prevents high-frequency digital return currents from coupling into the sensitive analogue signal paths.
+    \item \textbf{Trace routing:} Analogue signal traces are kept short ($<$10\,mm) and routed away from the ESP32 antenna keep-out zone. The TIA feedback resistors are placed immediately adjacent to the AD8608 to minimise parasitic capacitance. 0603 bypass capacitors are placed within 1\,mm of each IC supply pin.
+    \item \textbf{Electrode connector:} The three-pin SPE connector (DS1020-03ST1D, LCSC part C40878053) accommodates standard 2.54\,mm pitch connectors for WE, RE, and CE. The connector pinout is clearly labelled on the silkscreen.
+    \item \textbf{Trace widths:} Power traces (9\,V, 3.3\,V) are routed at 0.5\,mm; signal traces at 0.2\,mm.
+    \item \textbf{Via stitching:} Ground vias connect the top and bottom copper pours at regular intervals.
+\end{itemize}
+
+\subsubsection{PCB Fabrication}
+
+The designed PCB Gerber files were submitted to \textbf{JLCPCB} (Shenzhen, China) for fabrication. The specifications were: 2-layer, FR4 substrate (1.6\,mm), HASL (Hot Air Solder Levelling) surface finish, green solder mask, white silkscreen, minimum trace/spacing 0.1\,mm. Five prototype boards were ordered with a lead time of approximately 7 days at a cost of approximately \rupee{}400 per board.
+
+\subsubsection{PCB Assembly}
+
+All surface-mount components were hand-soldered under a microscope using a temperature-controlled soldering iron at 320\,\textdegree{}C and a fine-tip (0.2\,mm). Solder paste (Sn63/Pb37) was applied to fine-pitch pads (MSOP-10, TSSOP-14, SOT-23-5) using a syringe, followed by hot-air reflow at 240\,\textdegree{}C. Through-hole components (battery connector, DC jack, slide switch, SPE connector) were soldered last. The assembled PCB was visually inspected under magnification and electrical continuity was verified using a multimeter before powering up.
+
+\subsection{FTDI Programmer for Firmware Flashing}
+\label{subsec:ftdi}
+
+The ESP32-WROOM-32E module does not have an on-board USB-to-UART bridge. Firmware is loaded using an external \textbf{FTDI FT232RL} USB-to-UART adaptor (or compatible CP2102 module). The FTDI TXD and RXD lines are connected to the ESP32 GPIO1 (TXD0) and GPIO3 (RXD0) pins through 1\,k$\Omega$ series resistors (R3, R4). GPIO0 is pulled to ground during reset to enter the ESP32's bootloader mode (download mode). GPIO EN is pulled high by R6 = 10\,k$\Omega$ and momentarily pulled low via a tactile switch to initiate a software reset. Programming is performed at 921600\,baud.
+
+\section{Firmware Development}
+\label{sec:firmware}
+
+\subsection{Development Environment}
+
+Firmware was developed using the \textbf{Arduino framework} for ESP32 within the PlatformIO IDE (Microsoft VS Code extension). The following libraries were employed:
+
+\begin{itemize}
+    \item \texttt{ESPAsyncWebServer} (v1.2.3): Asynchronous HTTP server for serving the web application.
+    \item \texttt{AsyncWebSocket}: WebSocket server for real-time bidirectional data streaming.
+    \item \texttt{SPIFFS}: SPI Flash File System for serving static HTML/CSS/JS assets.
+    \item \texttt{ArduinoJson} (v6.21): JSON serialisation/deserialisation for WebSocket messages.
+    \item \texttt{Wire}: I$^2$C library for communicating with the AD5667R DAC.
+\end{itemize}
+
+\subsection{DAC Communication Protocol}
+
+The AD5667R DAC communicates via I$^2$C. The ESP32 initiates a write transaction to the DAC's I$^2$C address (configurable to 0x0E or 0x0F via an address pin). Each write consists of three bytes: a command byte specifying the target DAC channel and operation (load and update DAC register), followed by two data bytes (MSB, LSB) encoding the 16-bit code. The firmware function \texttt{setDACVoltage(float voltage\_V)} translates a desired potential in millivolts into a 16-bit integer code via Equation~\ref{eq:dac_transfer} and transmits it to the DAC over I$^2$C.
+
+\subsection{Chronoamperometry Routine}
+
+The chronoamperometry routine is implemented as a state machine with the following steps:
+
+\begin{enumerate}
+    \item \textbf{Initialisation:} Load user-specified parameters from the WebSocket-received JSON payload: applied potential $E_\text{app}$ (mV), duration $t_\text{total}$ (s), sampling interval $\Delta t$ (ms), current range (1--4), and equilibration time $t_\text{eq}$ (s, default 2\,s).
+    \item \textbf{Equilibration:} Apply $E_\text{app}$ to the cell and wait for $t_\text{eq}$ to allow the double-layer to charge and the open-circuit background current to stabilise.
+    \item \textbf{Potential step:} Record the start timestamp. (The potential is already applied; this marks $t = 0$ for the experiment log.)
+    \item \textbf{Sampling loop:} At each interval $\Delta t$, read the ADC (12-bit, 0--3.3\,V, averaged over 64 samples to reduce noise), convert to current using $i = (V_\text{ADC} - V_\text{offset}) / R_f$, append to the data array, and push to all connected WebSocket clients as a JSON object \texttt{\{t, i\}}.
+    \item \textbf{Completion:} After $t_\text{total}$, the routine terminates and the data array is made available for download.
+\end{enumerate}
+
+\noindent The ADC averaging of 64 samples at each time point reduces the RMS noise by a factor of 8, effectively providing $\sim$15\,bits of effective resolution from the 12-bit hardware ADC.
+
+\subsection{Wi-Fi Access Point Mode}
+
+The ESP32 is configured as a Wi-Fi Access Point (AP mode) with a fixed SSID and password. This eliminates dependence on external Wi-Fi infrastructure, allowing the device to operate in field settings. Any Wi-Fi device connecting to the AP can navigate to \texttt{192.168.4.1} in a browser to access the control interface. The AP is set to channel 6 and supports up to 4 simultaneous client connections.
+
+\section{Web-Based Monitoring Interface}
+\label{sec:webui}
+
+The web application is a single-page HTML/CSS/JavaScript file stored in the ESP32 SPIFFS partition. It is served via HTTP GET to the root URL and communicates with the device firmware via WebSocket on port 80.
+
+\subsection{User Interface Layout}
+
+The interface (Figure~\ref{fig:webui}) is divided into four panels:
+\begin{enumerate}
+    \item \textbf{Parameter Panel:} Input fields for applied potential (mV, range $\pm$1500\,mV), duration (s, 1--600), sampling interval (ms, 50--5000), current range (dropdown 1--4), and equilibration time (s).
+    \item \textbf{Control Panel:} ``Run'' and ``Stop'' buttons with a real-time status indicator.
+    \item \textbf{Chart Panel:} A large (full-width) live Chart.js line graph displaying current ($\mu$A or nA) vs.\ time (s), updating at each sampling interval with smooth animation disabled for performance.
+    \item \textbf{Export Panel:} ``Download CSV'', ``Download JSON'', and ``Copy to Clipboard'' buttons.
+\end{enumerate}
+
+\placefig{0.90\textwidth}{Screenshot of the web-based monitoring interface showing the parameter control panel (left), real-time current--time chart (centre), and export options. The chart displays a representative chronoamperometric transient obtained during device validation.}{fig:webui}
+
+\subsection{Data Export}
+
+On clicking ``Download CSV'', the JavaScript client assembles a comma-separated file with columns \texttt{time\_s, current\_uA} and triggers a browser download. The JSON export includes the full experimental metadata (parameters, device ID, timestamp) alongside the data array, facilitating programmatic analysis with Python or MATLAB.
+
+\section{3D-Printed Enclosure}
+\label{sec:enclosure}
+
+\subsection{CAD Design}
+
+The device enclosure was designed in \textbf{Autodesk Fusion 360}. The design comprises:
+\begin{itemize}
+    \item A bottom shell with PCB mounting posts (M2 standoffs, 4\,mm), a battery compartment, and a slot for the DC barrel jack.
+    \item A top lid with rectangular cutouts for the slide switch, status LEDs, and SPE electrode connector.
+    \item Internal wire management guides.
+    \item Overall external dimensions: approximately $90 \times 70 \times 35$\,mm.
+\end{itemize}
+The enclosure is split along a horizontal parting line, secured by M2 stainless steel screws.
+
+\subsection{3D Printing}
+
+The parts were printed on a \textbf{Prusa Mini+} FDM printer using grey \textbf{PLA} filament (Prusament, 1.75\,mm, $\pm$0.02\,mm diameter tolerance). Print parameters: layer height 0.2\,mm, infill 20\% (gyroid pattern), no support structures, print temperature 215\,\textdegree{}C, bed temperature 60\,\textdegree{}C. Total print time: approximately 4\,hours. The PLA enclosure provides adequate mechanical protection and thermal stability for bench and short-term field use.
+
+\placefig{0.80\textwidth}{Photograph of the 3D-printed enclosure (a) bottom shell with PCB seated on standoffs, and (b) fully assembled device with top lid, showing the slide switch, LED indicators, and electrode connector.}{fig:enclosure}
+
+\section{Chemical Reagents and Electrode Materials}
+\label{sec:chemicals}
+
+All chemicals were of analytical grade. Potassium ferricyanide (\ce{K3[Fe(CN)6]}), potassium ferrocyanide (\ce{K4[Fe(CN)6] . 3H2O}), ruthenium hexamine trichloride (\ce{[Ru(NH3)6]Cl3}), and hydrogen peroxide (\ce{H2O2}, 30\% w/v) were purchased from Sigma-Aldrich (India). p-Cresol ($\geq$99\%, Sigma-Aldrich) was used without further purification. Phosphate-buffered saline (PBS, 0.01\,M phosphate, 0.138\,M NaCl, 0.0027\,M KCl, pH 7.4 at 25\,\textdegree{}C) was prepared from tablets (Sigma-Aldrich) dissolved in ultrapure water (Milli-Q, resistivity $\geq 18.2$\,M$\Omega$\,cm at 25\,\textdegree{}C). All solutions were prepared fresh on the day of measurement and stored at 4\,\textdegree{}C when not in use.
+
+\subsection{Electrode Preparation}
+
+\subsubsection{Glassy Carbon Electrode (GCE) for Ferri/Ferrocyanide and RuHex}
+
+A 3\,mm diameter glassy carbon electrode (GCE) was polished to a mirror finish using 1.0\,$\mu$m, 0.3\,$\mu$m, and 0.05\,$\mu$m alumina slurries on polishing cloth, rinsing with ultrapure water after each step. The GCE was then sonicated in ultrapure water for 5\,min to remove residual alumina, followed by electrochemical cleaning in 0.5\,M \ce{H2SO4} by cycling the potential between $-0.2$ and $+1.2$\,V vs.\ Ag/AgCl at 100\,mV\,s$^{-1}$ for 20 cycles. The cleaned GCE was rinsed and dried under a stream of nitrogen before use.
+
+\subsubsection{Gold Screen-Printed Electrode (Au-SPE) for \ce{H2O2}}
+
+Disposable gold screen-printed electrodes (Au-SPEs, DRP-220AT, Metrohm Dropsens) were used as-received without further surface modification. Each SPE integrates a gold working electrode (4\,mm diameter), a silver pseudo-reference electrode, and a gold counter electrode on a ceramic substrate, connected via a standardised 5\,mm edge connector compatible with the DS1020-03ST1D on the device PCB.
+
+\subsubsection{Functionalised Electrode for p-Cresol}
+
+For ultra-sensitive p-cresol detection, the GCE was modified using a two-step surface modification protocol as described in the literature \cite{Chandra2013}:
+\begin{enumerate}
+    \item \textbf{Gold nanoparticle (AuNP) deposition:} AuNPs ($\sim$15\,nm) synthesised by the Turkevich method were drop-cast (5\,$\mu$L) onto the cleaned GCE and air-dried at room temperature.
+    \item \textbf{Aptamer/MIP functionalisation:} A molecularly imprinted polymer (MIP) layer selective for p-cresol was electropolymerised on the AuNP/GCE surface by potential cycling in a solution containing 10\,mM pyrrole and 1\,mM p-cresol template in PBS, followed by template removal by soaking in 1\% acetic acid for 30\,min.
+\end{enumerate}
+The electrode modification was characterised by cyclic voltammetry in \ferrocene{} and by scanning electron microscopy (SEM) imaging of the surface morphology.
+
+\section{Experimental Protocols}
+\label{sec:protocols}
+
+All experiments were conducted in a 5\,mL glass electrochemical cell thermostated at 25 $\pm$ 1\,\textdegree{}C. The reference electrode was Ag/AgCl (3\,M KCl, $E = +0.197$\,V vs.\ SHE). A platinum wire counter electrode was used for all experiments except with Au-SPEs (which have an integrated CE). Solutions were purged with nitrogen for 10\,min prior to each measurement and maintained under a nitrogen blanket during the experiment to minimise dissolved oxygen interference.
+
+\subsection{Device Validation with Ferri/Ferrocyanide}
+
+Stock solution: 10\,mM \ce{K3[Fe(CN)6]} + 10\,mM \ce{K4[Fe(CN)6]} in PBS. Working solutions at 0.5, 1, 2, 5, and 10\,mM were prepared by dilution in PBS. CA measurements were performed at $E_\text{app} = +0.4$\,V vs.\ Ag/AgCl (in the diffusion-limited oxidation plateau), duration 60\,s, sampling interval 100\,ms, equilibration time 5\,s, Range 4. Each measurement was repeated three times.
+
+\subsection{Validation with Ruthenium Hexamine}
+
+Stock solution: 5\,mM \ce{[Ru(NH3)6]Cl3} in PBS. Working solutions at 0.1, 0.5, 1, 2, and 5\,mM were prepared by dilution. CA at $E_\text{app} = -0.35$\,V vs.\ Ag/AgCl, duration 60\,s, interval 100\,ms, equilibration 5\,s, Range 3.
+
+\subsection{Hydrogen Peroxide Detection}
+
+\ce{H2O2} working solutions were prepared by serial dilution of 30\% stock in PBS to give 1, 10, 100, and 1000\,$\mu$M. CA on Au-SPE at $E_\text{app} = +0.6$\,V vs.\ Ag/AgCl, duration 60\,s, interval 200\,ms, equilibration 2\,s, Range 2. Amperometric response at $t = 30$\,s was used for calibration.
+
+\subsection{p-Cresol Detection}
+
+p-Cresol working solutions were prepared by serial dilution in PBS to concentrations of $10^{-15}$, $10^{-12}$, $10^{-9}$, $10^{-6}$, $10^{-3}$, and $10^{-2}$\,M. CA on MIP/AuNP/GCE at $E_\text{app} = +0.7$\,V vs.\ Ag/AgCl, duration 120\,s, interval 500\,ms, equilibration 10\,s, Range 1 for low concentrations and Range 2--3 for higher concentrations. Each concentration was measured in triplicate.
+
+\subsection{Data Analysis}
+
+All raw CA data were exported as CSV files from the web interface and imported into Python (v3.11) for analysis using NumPy, SciPy, and Matplotlib libraries. Cottrell analysis was performed by fitting $i$ vs.\ $t^{-1/2}$ over the window $5 < t < 55$\,s using linear regression (\texttt{scipy.stats.linregress}). Calibration curves were plotted as $i(t^*)$ vs.\ $C$ (using $t^* = 30$\,s for CA experiments). LOD and LOQ were calculated as $3\sigma_\text{blank}/S$ and $10\sigma_\text{blank}/S$ respectively, where $\sigma_\text{blank}$ is the standard deviation of five blank measurements and $S$ is the calibration slope.

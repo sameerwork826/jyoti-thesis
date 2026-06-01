@@ -1,0 +1,79 @@
+\chapter{Bill of Materials and PCB Specifications}
+\label{app:bom}
+
+\section{Bill of Materials}
+
+Table~\ref{tab:bom_full} lists all components used in the potentiostat PCB assembly, including designators, part numbers, suppliers, and unit prices as of October 2025 (sourced from LCSC Electronics via JLCPCB).
+
+\begin{longtable}{@{}p{0.4cm}p{3.2cm}p{1.8cm}p{2.6cm}p{1.0cm}p{1.0cm}@{}}
+\caption{Complete Bill of Materials for the Potentiostat PCB.}
+\label{tab:bom_full}\\
+\toprule
+\textbf{ID} & \textbf{Name / Value} & \textbf{Desig.} & \textbf{LCSC Part} & \textbf{Qty} & \textbf{Price (\$)} \\
+\midrule
+\endfirsthead
+\multicolumn{6}{c}{\textit{(Table~\ref{tab:bom_full} continued)}}\\
+\toprule
+\textbf{ID} & \textbf{Name / Value} & \textbf{Desig.} & \textbf{LCSC Part} & \textbf{Qty} & \textbf{Price (\$)} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+
+1  & MIC5205-3.3YM5 (LDO 3.3\,V) & 3.3V\_LDO\_1, \_2 & C37970 & 2 & 0.365 \\
+2  & 9\,V Battery connector & BT1 & C703374 & 1 & 0.103 \\
+3  & 4.7\,\si{\micro\farad} cap (0805) & C1, C2 & C7393930 & 2 & 0.016 \\
+4  & 10\,\si{\micro\farad} cap (0805) & C3,C6,C9,C10,C17 & C882505 & 5 & 0.115 \\
+5  & 470\,pF cap (0805) & C4, C5 & C417152 & 2 & 0.060 \\
+6  & 100\,nF cap (0805) & C7,C8,C11,C14,C15,C16 & C520082 & 6 & 0.008 \\
+7  & 10\,nF cap (0805) & C12, C13 & C7503490 & 2 & 0.005 \\
+8  & AD5667RBRMZ-2REEL7 (16-bit DAC) & DAC & C650006 & 1 & 15.353 \\
+9  & MAX4643EUA+ (Dual SPDT switch) & DUAL\_SWITCH & C1546042 & 1 & 4.384 \\
+10 & HDR-M-2.54\_1x1 (test point) & J1--J6 & C81276 & 6 & 0.007 \\
+11 & LED 0603 Red & LED1, LED2 & C72044 & 2 & 0.021 \\
+12 & 470\,\si{\ohm} resistor (0805) & R1 & C385392 & 1 & 0.020 \\
+13 & 2\,k\si{\ohm} resistor (0603) & R2 & C209226 & 1 & 0.003 \\
+14 & 10\,k\si{\ohm} resistor (0603) & R3,R4,R5,R6,R12 & C2989345 & 5 & 0.010 \\
+15 & 1.2\,k\si{\ohm} resistor (0603) & R7 & C2984430 & 1 & 0.023 \\
+16 & 16.2\,k\si{\ohm} resistor (0805) & R8 & C228332 & 1 & 0.005 \\
+17 & 845\,\si{\ohm} resistor (0805) & R9 & C218710 & 1 & 0.008 \\
+18 & 29.4\,k\si{\ohm} resistor (0805) & R10 & C228690 & 1 & 0.004 \\
+19 & 8.06\,k\si{\ohm} resistor (0805) & R11 & C19006 & 1 & 0.002 \\
+20 & 220\,\si{\ohm} resistor (0603) & R13 & C138284 & 1 & 0.002 \\
+21 & TPMAX4644EUT+T (Single SPDT switch) & SINGLE\_SWITCH & C4244903 & 1 & 0.335 \\
+22 & DS1020-03ST1D (SPE connector) & SPE\_CONN & C40878053 & 1 & --- \\
+23 & SK-12D02-VG5 (Slide switch) & SW1 & C136722 & 1 & 0.074 \\
+24 & POWER-JACK (DC barrel jack) & U1 & C990000179 & 1 & --- \\
+25 & MCP73831T-2ATI/OT (LiPo charger) & U3 & C14879 & 1 & 1.701 \\
+26 & ESP32-WROOM-32E 4\,MB & U6 & C701341 & 1 & 3.850 \\
+27 & AD8608ARUZ (Quad precision op-amp) & U11 & C578776 & 1 & 4.170 \\
+
+\end{longtable}
+
+\section{PCB Specifications}
+\label{app:pcb_specs}
+
+\begin{table}[H]
+\centering
+\caption{PCB fabrication specifications (JLCPCB, October 2025).}
+\label{tab:pcb_specs}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Specification} \\
+\midrule
+Number of layers & 2 \\
+Material & FR4 \\
+Board thickness & 1.6\,mm \\
+Copper thickness & 1\,oz (35\,$\mu$m) \\
+Surface finish & HASL (Lead-free) \\
+Solder mask colour & Green \\
+Silkscreen colour & White \\
+Minimum trace width & 0.1\,mm \\
+Minimum trace spacing & 0.1\,mm \\
+Minimum via drill diameter & 0.3\,mm \\
+Board dimensions & Approx.\ $80 \times 60$\,mm \\
+Quantity ordered & 5 \\
+Unit price (5 pcs) & \$2 (approx.\ \rupee{}170 per board) \\
+\bottomrule
+\end{tabular}
+\end{table}

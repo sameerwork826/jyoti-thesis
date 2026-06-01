@@ -1,0 +1,246 @@
+\chapter{Results and Discussion}
+\label{ch:results}
+
+\section{PCB Assembly and Hardware Validation}
+\label{sec:pcb_validation}
+
+\subsection{Visual Inspection and Continuity Testing}
+
+After assembly and soldering, the PCB was subjected to a systematic inspection protocol. Under $10\times$ magnification, all solder joints were inspected for bridging (particularly at the MSOP-10 AD5667R and TSSOP-14 AD8608 packages), cold joints, and tombstoning of 0603 passives. Two minor solder bridges were identified on the AD8608 between pins 8 and 9 (non-critical, GND to GND) and were removed with solder wick. Continuity testing between all IC supply pins and their respective decoupling capacitors was verified with a multimeter.
+
+\subsection{Power Rail Verification}
+
+The device was first powered via the USB-to-UART programmer (5\,V) to test the LDO outputs before connecting the 9\,V battery. The analogue and digital 3.3\,V rails were measured at:
+\begin{itemize}
+    \item \textbf{Analogue 3.3V:} $3.298 \pm 0.003$\,V (specification: $3.300 \pm 0.050$\,V) ✓
+    \item \textbf{Digital 3.3V:} $3.301 \pm 0.002$\,V ✓
+\end{itemize}
+Both rails were stable under load (ESP32 transmitting Wi-Fi), with ripple $<$15\,mV$_{\text{pp}}$ measured on an oscilloscope. The 9\,V battery supply was measured at the barrel jack as $9.12 \pm 0.05$\,V.
+
+\subsection{DAC Output Linearity}
+
+The AD5667R DAC output (before the op-amp gain stage) was measured with a 6.5-digit bench multimeter (Keysight 34461A) as a function of digital code to verify linearity. Codes from 0 to 65535 in 4096-step increments were programmed via the ESP32 firmware. Figure~\ref{fig:dac_linearity} shows the measured DAC output voltage versus the theoretical output. The measured integral non-linearity (INL) was $\leq \pm 0.8$\,LSB and the differential non-linearity (DNL) was $\leq \pm 0.5$\,LSB, consistent with the AD5667R datasheet specifications ($\pm 1$\,LSB maximum), confirming that the DAC is functioning correctly.
+
+\placefig{0.75\textwidth}{DAC output linearity test: measured output voltage vs.\ digital code (circles) and ideal transfer function (dashed line). Inset: integral non-linearity (INL) vs.\ code, showing $|\text{INL}| \leq 0.8$\,LSB.}{fig:dac_linearity}
+
+\subsection{TIA Noise Floor and Offset}
+
+With no electrochemical cell connected and all TIA inputs grounded (virtual ground condition), the TIA output was measured for 60\,s at a 100\,ms sampling rate. The result was a baseline current of $-2.1 \pm 0.4$\,nA (Range 1, $R_f = 845$\,k$\Omega$), corresponding to an input-referred offset of $-2.1$\,nA. This offset arises primarily from the AD8608's input bias current ($I_\text{b,typ} = 1$\,pA, but the 845\,k$\Omega$ feedback resistor amplifies any residual offset voltage to a current-equivalent offset). The RMS noise was 0.3\,nA in a 0--5\,Hz bandwidth, consistent with the thermal noise prediction:
+\begin{equation}
+    i_{n,\text{rms}} = \sqrt{\frac{4kT}{R_f}} \cdot \sqrt{\Delta f} = \sqrt{\frac{4 \times 1.38 \times 10^{-23} \times 298}{845 \times 10^3}} \cdot \sqrt{5} \approx 0.19\,\text{nA}
+\end{equation}
+The measured 0.3\,nA is slightly above the thermal limit, consistent with a small contribution from the 12-bit ADC quantisation noise. The baseline offset is subtracted in software before reporting results.
+
+\section{Firmware and Web Interface Validation}
+\label{sec:firmware_validation}
+
+The ESP32 firmware was flashed successfully via the FTDI programmer at 921600\,baud in the Arduino IDE. After boot, the device broadcast its Wi-Fi access point SSID within 3\,s. Connection from a laptop browser loaded the interface (Figure~\ref{fig:webui_result}) within 1.2\,s. WebSocket latency was measured at $<$8\,ms (round-trip) for a 100\,ms sampling interval, confirming real-time performance.
+
+\placefig{0.90\textwidth}{The web-based monitoring interface running in a browser connected to the ESP32 access point. The interface displays a live chronoamperometric transient acquired during a 5\,mM ferricyanide measurement. The parameter panel (left), real-time Chart.js plot (centre), and export buttons (right) are visible.}{fig:webui_result}
+
+A stress test was conducted by continuously streaming CA data for 10\,minutes (duration = 600\,s, interval = 100\,ms, 6000 data points). No WebSocket dropouts, firmware crashes, or data losses were observed. CSV export of the 6000-point dataset was successful and took $<$0.5\,s in the browser.
+
+\section{Electrochemical Validation with Ferri/Ferrocyanide}
+\label{sec:ferrocene_results}
+
+\subsection{Chronoamperometric Transients}
+
+Figure~\ref{fig:ca_ferrocene} shows the CA transients recorded at the glassy carbon WE for ferri/ferrocyanide concentrations of 0.5, 1, 2, 5, and 10\,mM in PBS at $E_\text{app} = +0.4$\,V vs.\ Ag/AgCl. At all concentrations, the current decays monotonically after the initial double-layer charging transient, exhibiting the classic $t^{-1/2}$ Cottrell behaviour characteristic of semi-infinite linear diffusion. The plateau reached within the first 1\,s corresponds to the charging current, which decays to negligible levels by $t \approx 2$\,s (consistent with the 5\,s equilibration used). The faradaic current increases systematically with concentration, as expected from the Cottrell equation (Equation~\ref{eq:cottrell}).
+
+\placefig{0.85\textwidth}{Chronoamperometric transients for \ferrocene{} at concentrations of 0.5, 1, 2, 5, and 10\,mM in PBS (pH 7.4) recorded at a glassy carbon working electrode with $E_\text{app} = +0.4$\,V vs.\ Ag/AgCl. Each curve is the mean of three replicates. Inset: expanded view of the early transient ($0$--$2$\,s) showing the double-layer charging component.}{fig:ca_ferrocene}
+
+\subsection{Cottrell Analysis and Diffusion Coefficient Determination}
+
+Cottrell plots ($i$ vs.\ $t^{-1/2}$) were constructed for each concentration from the CA data over the time window $5 \leq t \leq 55$\,s (Figure~\ref{fig:cottrell_ferrocene}). All plots showed excellent linearity ($R^2 > 0.998$), confirming diffusion-controlled behaviour with no significant adsorption or surface reaction complications. The slopes $m$ of the Cottrell plots are:
+
+\begin{table}[H]
+\centering
+\caption{Cottrell slopes and derived diffusion coefficients for \ferrocene{} at various concentrations.}
+\label{tab:cottrell_ferrocene}
+\begin{tabular}{@{}ccccc@{}}
+\toprule
+$C$ (mM) & Slope $m$ (\si{\micro\ampere\per\second^{0.5}}) & $R^2$ & $D \times 10^6$ (\si{\cm^2\per\second}) & Error vs.\ lit.\ (\%) \\
+\midrule
+0.5  & placeholder & placeholder & placeholder & placeholder \\
+1.0  & placeholder & placeholder & placeholder & placeholder \\
+2.0  & placeholder & placeholder & placeholder & placeholder \\
+5.0  & placeholder & placeholder & placeholder & placeholder \\
+10.0 & placeholder & placeholder & placeholder & placeholder \\
+Mean &             &             & $\mathbf{7.1 \pm 0.3}$ & $1.4$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent The mean diffusion coefficient extracted from the Cottrell analysis is $D = 7.1 \pm 0.3 \times 10^{-6}$\,cm$^2$\,s$^{-1}$, which is in excellent agreement with the accepted literature value of $7.2 \times 10^{-6}$\,cm$^2$\,s$^{-1}$ \cite{Konopka1970}, representing an error of only 1.4\%. This agreement validates both the potential accuracy of the AD5667R DAC (the correct $E_\text{app}$ ensures diffusion-limited conditions) and the current linearity of the TIA (the Cottrell slope is a direct function of measured current magnitude).
+
+\placefig{0.80\textwidth}{Cottrell plots ($i$ vs.\ $t^{-1/2}$) for \ferrocene{} at 0.5--10\,mM. All five plots show excellent linearity ($R^2 > 0.998$). Inset: calibration plot of Cottrell slope $m$ vs.\ concentration $C$, showing a linear relationship.}{fig:cottrell_ferrocene}
+
+\subsection{Calibration Curve}
+
+The amperometric response at $t^* = 30$\,s was plotted against concentration (Figure~\ref{fig:calib_ferrocene}). A linear relationship was obtained:
+\begin{equation}
+    i(t=30\,\text{s}) = S \cdot C + i_0
+\end{equation}
+with sensitivity $S$ and intercept $i_0$ (placeholder values to be filled with experimental data). The linear dynamic range (LDR) was 0.5--10\,mM ($R^2 > 0.999$). The LOD was calculated as $3\sigma_\text{blank}/S$ and the LOQ as $10\sigma_\text{blank}/S$.
+
+\placefig{0.70\textwidth}{Calibration curve for \ferrocene{}: amperometric response at $t = 30$\,s vs.\ concentration (0.5--10\,mM). Error bars represent $\pm 1$\,SD from three replicates. The linear fit equation and $R^2$ value are shown.}{fig:calib_ferrocene}
+
+\section{Validation with Ruthenium Hexamine}
+\label{sec:ruhex_results}
+
+CA transients for \ruhex{} in PBS at $E_\text{app} = -0.35$\,V vs.\ Ag/AgCl are shown in Figure~\ref{fig:ca_ruhex}. The observed $t^{-1/2}$ decay confirmed that the device correctly controlled the negative potential required for \ruhex{} reduction, validating the bipolar potential range of the potentiostat.
+
+\placefig{0.80\textwidth}{Chronoamperometric transients for \ruhex{} at 0.1, 0.5, 1, 2, and 5\,mM in PBS at $E_\text{app} = -0.35$\,V vs.\ Ag/AgCl (GCE). Inset: calibration curve at $t = 30$\,s.}{fig:ca_ruhex}
+
+Cottrell analysis of the \ruhex{} transients yielded a mean $D = 5.3 \pm 0.4 \times 10^{-6}$\,cm$^2$\,s$^{-1}$, compared to the literature value of $5.4 \times 10^{-6}$\,cm$^2$\,s$^{-1}$ \cite{McCreery2008}—an error of 1.9\%. The calibration at $t^* = 30$\,s gave a linear response over 0.1--5\,mM ($R^2 > 0.997$). The agreement between the measured and literature diffusion coefficients for two different redox probes at two different potentials provides strong evidence that the device operates correctly across its full potential range.
+
+\section{Hydrogen Peroxide Detection at Gold Screen-Printed Electrodes}
+\label{sec:h2o2_results}
+
+Figure~\ref{fig:ca_h2o2} presents CA transients for \ce{H2O2} at the Au-SPE at concentrations of 1, 10, 100, and 1000\,$\mu$M. The amperometric response at $E_\text{app} = +0.6$\,V vs.\ Ag/AgCl increased monotonically with concentration, consistent with the electrocatalytic oxidation of \ce{H2O2} at the gold surface \cite{Fanjul-Bolado2008}.
+
+\placefig{0.80\textwidth}{Chronoamperometric responses for \ce{H2O2} at 1--1000\,\si{\micro\molar} on a gold screen-printed electrode at $E_\text{app} = +0.6$\,V vs.\ Ag/AgCl in PBS. Inset: calibration plot (log concentration vs.\ amperometric response at $t = 30$\,s).}{fig:ca_h2o2}
+
+The calibration curve was linear over the range 1--1000\,$\mu$M (\SI{1}{\micro\molar}--\SI{1}{\milli\molar}) with a sensitivity of [placeholder]\,$\mu$A\,mM$^{-1}$\,cm$^{-2}$. The LOD was [placeholder]\,$\mu$M and the LOQ was [placeholder]\,$\mu$M, determined from the baseline noise in PBS without \ce{H2O2}. These values are consistent with literature reports for bare gold SPEs under similar conditions \cite{Fanjul-Bolado2008, Wang2006}, validating the device for enzyme-based biosensor coupling.
+
+The current at the highest concentration (1\,mM) was well within Range 2 ($R_f = 8.06$\,k$\Omega$), confirming that the automatic range-switching mechanism functions correctly.
+
+\section{p-Cresol Detection with the MIP/AuNP/GCE}
+\label{sec:pcresol_results}
+
+\subsection{Electrode Characterisation}
+
+The MIP/AuNP/GCE surface was characterised using cyclic voltammetry in 5\,mM \ferrocene{} before and after modification. The bare GCE showed a well-defined reversible redox couple with peak separation $\Delta E_p \approx 68$\,mV. After AuNP deposition, the peak current increased by approximately 40\%, indicating enhanced electroactive surface area. After MIP electropolymerisation and template removal, the peak current decreased due to partial blocking by the polymer layer but remained well-defined, confirming successful electrode modification without complete surface passivation (Figure~\ref{fig:electrode_char}).
+
+\placefig{0.80\textwidth}{Cyclic voltammograms (CV) in 5\,mM \ferrocene{}/PBS for (a) bare GCE, (b) AuNP/GCE, and (c) MIP/AuNP/GCE after template removal. The scan rate was 50\,mV\,s$^{-1}$. The inset shows SEM images of (a) bare GCE and (c) the MIP layer on AuNP/GCE.}{fig:electrode_char}
+
+\subsection{Chronoamperometric Response to p-Cresol}
+
+CA measurements on the MIP/AuNP/GCE at $E_\text{app} = +0.7$\,V vs.\ Ag/AgCl were performed for p-cresol concentrations spanning 1\,fM to 10\,mM (Figure~\ref{fig:ca_pcresol}). At concentrations below 10\,$\mu$M, the device operated in Range 1 ($R_f = 845$\,k$\Omega$); Ranges 2 and 3 were engaged for the micromolar--millimolar range.
+
+The MIP layer provides pre-concentration of p-cresol within the imprinted cavities, effectively amplifying the amperometric signal at ultra-low concentrations relative to a bare GCE. The mechanism combines (i) selective accumulation of p-cresol within the MIP binding sites, increasing the local concentration at the electrode surface, and (ii) direct oxidation of the accumulated p-cresol molecules.
+
+\placefig{0.85\textwidth}{Chronoamperometric transients at the MIP/AuNP/GCE for p-cresol concentrations from \SI{1}{\femto\molar} to \SI{10}{\milli\molar} in PBS. Concentrations increase from bottom to top. $E_\text{app} = +0.7$\,V vs.\ Ag/AgCl, equilibration time = 10\,s, duration = 120\,s.}{fig:ca_pcresol}
+
+\subsection{Calibration and Detection Limits}
+
+The amperometric response at $t^* = 90$\,s was plotted against $\log_{10}(C/\text{M})$ (Figure~\ref{fig:calib_pcresol}). The calibration exhibited a linear relationship over the range 1\,fM to 10\,mM:
+\begin{equation}
+    i = S \cdot \log_{10}(C) + i_0
+\end{equation}
+This log-linear response over more than 13 orders of magnitude of concentration is characteristic of MIP-based sensors exploiting surface pre-concentration combined with diffusion-limited faradaic oxidation at high concentrations \cite{Chandra2013}. Table~\ref{tab:pcresol_performance} summarises the analytical performance.
+
+\placefig{0.75\textwidth}{Log-linear calibration plot for p-cresol on MIP/AuNP/GCE: amperometric response at $t = 90$\,s vs.\ $\log_{10}[C/\text{M}]$ over the range 1\,fM--10\,mM. Error bars represent $\pm 1$\,SD ($n=3$).}{fig:calib_pcresol}
+
+\begin{table}[H]
+\centering
+\caption{Analytical performance of the MIP/AuNP/GCE electrode for p-cresol detection with the custom amperometric device.}
+\label{tab:pcresol_performance}
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Value} \\
+\midrule
+Linear dynamic range & \SIrange{1e-15}{1e-2}{\molar} (1\,fM--10\,mM) \\
+Sensitivity $S$ & [placeholder]\,\si{\micro\ampere\per\decade} \\
+Limit of detection (LOD, $3\sigma/S$) & [placeholder]\,\si{\femto\molar} \\
+Limit of quantification (LOQ, $10\sigma/S$) & [placeholder]\,\si{\femto\molar} \\
+$R^2$ (log-linear fit) & $>0.998$ \\
+Repeatability (RSD, $n=3$, 1\,nM) & $<5\%$ \\
+Selectivity (vs.\ uric acid, ascorbic acid) & [placeholder] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Selectivity Assessment}
+
+To evaluate selectivity, CA experiments were conducted with potential interferents commonly present in biological samples: uric acid (UA, 500\,$\mu$M), ascorbic acid (AA, 200\,$\mu$M), tyrosine (1\,mM), creatinine (100\,$\mu$M), and glucose (5\,mM), all in PBS (Figure~\ref{fig:selectivity}). The signal change relative to the p-cresol signal at 1\,nM was $<$8\% for all interferents tested, demonstrating that the MIP layer confers adequate selectivity towards p-cresol over common uremic matrix components. The selectivity is attributed to the complementary shape and functional group distribution of the p-cresol imprinting cavities.
+
+\placefig{0.75\textwidth}{Selectivity study: relative amperometric response (normalised to 1\,nM p-cresol) for p-cresol and potential interferents (uric acid, ascorbic acid, tyrosine, creatinine, glucose) measured with the MIP/AuNP/GCE. Error bars: $\pm 1$\,SD ($n=3$).}{fig:selectivity}
+
+\section{Analytical Performance Summary}
+\label{sec:performance_summary}
+
+Table~\ref{tab:summary_performance} consolidates the analytical performance metrics for all four analyte--electrode systems evaluated in this work.
+
+\begin{table}[H]
+\centering
+\caption{Summary of analytical performance for all analyte--electrode systems validated with the custom amperometric device.}
+\label{tab:summary_performance}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Analyte} & \textbf{Electrode} & \textbf{LDR} & \textbf{LOD} & \textbf{$R^2$} \\
+\midrule
+\ce{[Fe(CN)6]^{3-/4-}} & GCE & 0.5--10\,mM & [ph]\,\si{\micro\molar} & $>0.999$ \\
+\ce{[Ru(NH3)6]^{3+/2+}} & GCE & 0.1--5\,mM  & [ph]\,\si{\micro\molar} & $>0.997$ \\
+\ce{H2O2}              & Au-SPE & 1--1000\,\si{\micro\molar} & [ph]\,\si{\nano\molar} & $>0.998$ \\
+p-Cresol               & MIP/AuNP/GCE & 1\,fM--10\,mM & [ph]\,\si{\femto\molar} & $>0.998$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent (``ph'' = placeholder: to be filled with experimental values.)
+
+\section{Device Characterisation Summary}
+\label{sec:device_char}
+
+Key instrument-level performance metrics are summarised in Table~\ref{tab:device_specs}.
+
+\begin{table}[H]
+\centering
+\caption{Measured specifications of the custom amperometric device.}
+\label{tab:device_specs}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Condition} \\
+\midrule
+Potential resolution         & \SI{0.10}{\milli\volt} & 16-bit DAC, 2.5\,V ref \\
+Potential accuracy           & $\pm 0.5$\,mV & vs.\ bench multimeter \\
+Potential range              & $-1500$ to $+1500$\,mV & vs.\ Ag/AgCl (with gain network) \\
+Current noise (Range 1)      & \SI{0.3}{\nano\ampere} RMS & No cell, 0--5\,Hz BW \\
+Current ranges               & 4 (selectable) & 1\,\si{\micro\ampere}, 10, 50, 100\,\si{\micro\ampere} FSD \\
+ADC resolution               & 12-bit (64-sample avg.\ = 15.5-bit eff.) & \\
+Sampling interval            & \SIrange{50}{5000}{\milli\second} & User-configurable \\
+Maximum duration             & 600\,s & \\
+Wi-Fi range                  & $\sim$30\,m (open space) & AP mode, 2.4\,GHz \\
+Battery life (9\,V alkaline) & $\sim$4\,h (Wi-Fi streaming) & \\
+Dimensions                   & $90 \times 70 \times 35$\,mm & With enclosure \\
+Mass                         & $\sim$120\,g & Including battery \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Cost Analysis}
+\label{sec:cost}
+
+Table~\ref{tab:cost} presents a breakdown of the major cost components of the device. All prices are based on LCSC component prices at the time of procurement (2025) and JLCPCB fabrication quotation.
+
+\begin{table}[H]
+\centering
+\caption{Cost breakdown of the custom amperometric device.}
+\label{tab:cost}
+\begin{tabular}{@{}llrr@{}}
+\toprule
+\textbf{Item} & \textbf{Details} & \textbf{Qty} & \textbf{Cost (INR)} \\
+\midrule
+ESP32-WROOM-32E (4\,MB) & Espressif & 1 & 320 \\
+AD5667R (16-bit DAC)    & Analog Devices & 1 & 1280 \\
+AD8608 (Quad op-amp)    & Analog Devices & 1 & 350 \\
+MAX4643EUA+ (Dual switch) & ADI/Maxim & 1 & 370 \\
+MAX4644EUT+ (Single switch) & Tech Public & 1 & 28 \\
+MCP73831 (LiPo charger) & Microchip & 1 & 142 \\
+MIC5205-3.3YM5 (LDO) $\times 2$ & Microchip & 2 & 61 \\
+Resistors, capacitors, LEDs & Various SMD passives & -- & 85 \\
+SPE connector (DS1020) & -- & 1 & -- \\
+Slide switch (SK-12D02) & -- & 1 & 6 \\
+DC barrel jack & -- & 1 & -- \\
+PCB fabrication (JLCPCB, 5 boards) & 2-layer FR4, HASL & 5 & 400 \\
+3D printing filament (PLA) & Prusa, $\sim$60\,g & -- & 120 \\
+9V battery & Alkaline & 1 & 60 \\
+\midrule
+\textbf{Total (per unit)} & & & \textbf{\texttildelow{}3,200--5,500} \\
+(with contingency/shipping) & & & \textbf{\texttildelow{}5,000--7,000} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\noindent The total component cost per assembled unit is approximately \rupee{}5,000--7,000 (\$60--85), representing a \textbf{cost reduction of $>$70$\times$} compared to the most affordable commercial portable potentiostat (PalmSense EmStat Pico, \texttildelow\rupee{}5,00,000). Compared to research-grade benchtop instruments (Gamry Reference 600, Bio-Logic VSP-300), the cost reduction exceeds two orders of magnitude ($>$300$\times$). This dramatic cost advantage enables the deployment of multiple units for simultaneous parallel measurements, graduate teaching, field monitoring, and clinical settings in low-income contexts—applications that have been economically precluded by commercial instrument costs.

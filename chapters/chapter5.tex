@@ -1,0 +1,81 @@
+\chapter{Conclusions and Future Work}
+\label{ch:conclusion}
+
+\section{Summary of Achievements}
+\label{sec:summary}
+
+This thesis has presented the complete design, fabrication, firmware implementation, and multi-analyte electrochemical validation of a low-cost, portable, web-connected amperometric device for molecular sensing. The work was motivated by the prohibitive cost of commercial potentiostats, which places sophisticated electroanalytical capability out of reach for resource-limited laboratories, point-of-care deployments, and undergraduate teaching in the Indian context. The principal achievements of the present work are summarised below.
+
+\subsection{Hardware Platform}
+
+A custom two-layer PCB was designed from scratch in EasyEDA and manufactured by JLCPCB at a cost of approximately \rupee{}400 per board. The design centres on the ESP32-WROOM-32E system-on-chip, combining a dual-core 240\,MHz processor with integrated 802.11\,b/g/n Wi-Fi. A 16-bit dual-channel DAC (AD5667R) provides potential control with a resolution of $\sim$0.1\,mV, and a quad-channel precision transimpedance amplifier (AD8608) with four selectable gain resistors enables current measurement from the nanoampere to the hundred-microampere range. A star-point grounding topology, separate analogue and digital power domains (dual MIC5205 LDOs), and per-IC supply decoupling achieve an instrument noise floor of 0.3\,nA RMS—sufficient for sub-nanomolar electrochemical detection. A MCP73831 battery charger IC provides LiPo charging capability for future battery variants. The total component cost is approximately \rupee{}5,000--7,000, representing a $>$70$\times$ reduction over the most affordable commercial equivalent.
+
+\subsection{Firmware and Web Interface}
+
+Firmware developed on the ESP32 Arduino platform implements a complete chronoamperometry engine with configurable applied potential, duration, sampling interval, current range, and equilibration time. The device operates in Wi-Fi access point mode, serving a single-page web application that provides real-time Chart.js visualisation, parameter control, and CSV/JSON data export—eliminating the need for any dedicated software installation. WebSocket communication achieves $<$8\,ms latency at 100\,ms sampling intervals, demonstrating real-time performance. A 3D-printed PLA enclosure (Fusion 360, Prusa Mini) provides a ruggedised, compact housing.
+
+\subsection{Electrochemical Validation}
+
+The device was validated against two benchmark outer-sphere redox probes. Cottrell analysis of chronoamperometric transients for \ferrocene{} and \ruhex{} yielded diffusion coefficients of $7.1 \pm 0.3 \times 10^{-6}$\,cm$^2$\,s$^{-1}$ and $5.3 \pm 0.4 \times 10^{-6}$\,cm$^2$\,s$^{-1}$ respectively, within 2\% of accepted literature values. The device also demonstrated practical analytical capability for \ce{H2O2} detection at a gold SPE (1\,$\mu$M--1\,mM) and for ultra-sensitive p-cresol detection at a MIP/AuNP/GCE over a dynamic range spanning 13 orders of magnitude (1\,fM--10\,mM) with sub-femtomolar LOD—a performance level competitive with benchtop laboratory instruments. The web interface successfully visualised, streamed, and exported all acquired data without errors over sessions lasting up to 10\,minutes.
+
+\section{Significance and Impact}
+\label{sec:significance}
+
+The device developed in this work addresses a critical gap in the electroanalytical toolkit: the availability of a self-contained, wireless, browser-accessible potentiostat at a cost accessible to undergraduate students, start-up companies, rural clinics, and research groups in low- and middle-income countries. By demonstrating clinically relevant performance (sub-femtomolar p-cresol detection in a phosphate-buffered saline matrix), this work establishes the platform as a viable candidate for future point-of-care kidney disease monitoring devices. The open PCB design, published firmware, and web application code additionally contribute to the growing body of open-source electrochemical instrumentation.
+
+\section{Limitations}
+\label{sec:limitations}
+
+The following limitations of the present work should be acknowledged:
+
+\begin{enumerate}
+    \item \textbf{Potential range:} The current op-amp gain network limits the usable potential to approximately $\pm 1.5$\,V vs.\ Ag/AgCl. This excludes analytes requiring potentials beyond this window, such as oxygen reduction at very negative potentials or strong oxidants.
+    \item \textbf{Single-technique operation:} The validated firmware supports only chronoamperometry. Cyclic voltammetry, differential pulse voltammetry, and square wave voltammetry—which provide additional mechanistic and diagnostic information—have not been implemented in the present version.
+    \item \textbf{No temperature control:} All experiments were conducted at ambient laboratory temperature. For clinical applications or quantitative comparisons, thermostatic control of the electrochemical cell would be required.
+    \item \textbf{Wi-Fi security:} The current access point implementation uses WPA2 with a fixed password. For clinical deployments, more robust security (WPA3, TLS-encrypted WebSocket) would be necessary.
+    \item \textbf{Matrix validation:} All measurements were performed in PBS. Validation in complex biological matrices (serum, urine, dialysate) with appropriate matrix correction is a prerequisite for clinical use.
+    \item \textbf{On-board ADC limitations:} The ESP32's internal SAR ADC is characterised by non-monotonicity near supply rails and a usable dynamic range of approximately 11 effective bits. A dedicated 16-bit external ADC (e.g.\ ADS1115) would improve current resolution, particularly at low concentrations in Range 1.
+    \item \textbf{Electromagnetic compliance:} The device has not been evaluated for EMC compliance (FCC, CE, BIS), which would be required for regulatory approval of a commercial device.
+\end{enumerate}
+
+\section{Future Work}
+\label{sec:future}
+
+The present work provides a strong foundation for several directions of future development:
+
+\subsection{Additional Electroanalytical Techniques}
+
+The firmware can be extended to implement cyclic voltammetry (CV), linear sweep voltammetry (LSV), differential pulse voltammetry (DPV), and square wave voltammetry (SWV) with relatively minor modifications to the potential waveform generation code. CV in particular would enable the mechanistic characterisation of electrode reactions and provide complementary diagnostic information to CA. Electrochemical impedance spectroscopy (EIS) would require a frequency-swept sinusoidal waveform and a more sophisticated data analysis chain but would enormously expand the device's analytical repertoire, enabling label-free biosensing via impedimetric transduction.
+
+\subsection{Expanded Analyte Panel}
+
+The validated platform can be extended to a wide range of clinically and environmentally significant analytes by appropriate electrode modification:
+\begin{itemize}
+    \item \textbf{Glucose:} GOx-modified electrode for diabetic POC monitoring.
+    \item \textbf{Uric acid:} Direct electrochemical oxidation or enzyme-based detection for gout and CKD monitoring.
+    \item \textbf{Dopamine:} Carbon nanocomposite-modified electrode for neuroscience applications.
+    \item \textbf{Heavy metals (Pb$^{2+}$, Cd$^{2+}$, As$^{3+}$):} Anodic stripping voltammetry (ASV) for environmental water quality monitoring.
+    \item \textbf{Creatinine:} Creatinase/creatininase enzyme-based for kidney function assessment.
+    \item \textbf{Pesticides:} Inhibition assays with acetylcholinesterase (AChE) for agricultural monitoring.
+\end{itemize}
+
+\subsection{Improved Analogue Front-End}
+
+Replacing the internal ESP32 ADC with a high-resolution external ADC (16-bit, low noise, SPI-compatible, e.g.\ ADS1256 or AD7799) would improve the current measurement resolution by at least 4 bits (16$\times$), significantly lowering the detection limit achievable with a given feedback resistor. Incorporating a low-noise instrumentation amplifier (e.g.\ INA128) before the ADC input and implementing digital lock-in detection for AC electrochemical techniques would further enhance sensitivity.
+
+\subsection{IoT and Cloud Integration}
+
+The ESP32's Wi-Fi connectivity enables straightforward integration with cloud platforms (AWS IoT Core, Google Firebase, ThingSpeak) via MQTT or HTTPS. Adding cloud logging would enable longitudinal monitoring of patients (e.g.\ daily p-cresol tracking in CKD patients), remote alert generation when analyte levels exceed clinical thresholds, and large-scale multi-site data collection for epidemiological studies. A companion smartphone application (Flutter or React Native) would provide a more polished user experience than the browser interface.
+
+\subsection{Miniaturisation and Integration}
+
+A second-generation PCB could integrate the ESP32 module, DAC, TIA, and power management into a smaller form factor (credit-card size, $85 \times 55$\,mm) using 4-layer stackup and smaller component packages. Co-integration with a microfluidic sample handling chip (e.g.\ PDMS-based) would enable true lab-on-chip functionality, automating sample delivery and reducing sample volume requirements to the microlitre range.
+
+\subsection{Clinical Validation and Regulatory Pathway}
+
+The most impactful direction for future work is clinical validation of the p-cresol detection capability in human serum and urine samples from CKD and healthy control cohorts at a collaborating hospital. Validation against the gold standard method (LC-MS/MS) would establish accuracy and bias metrics. Subsequently, a regulatory submission pathway (BIS medical device certification under MDR 2017 in India) could be pursued to bring the device to clinical use.
+
+\section{Concluding Remarks}
+\label{sec:conclusion}
+
+This thesis demonstrates that a fully functional, multi-analyte amperometric potentiostat can be designed, fabricated, and validated at a cost two orders of magnitude lower than commercial equivalents, without compromising analytical performance for the target analytes. The integration of a high-resolution DAC, precision TIA with range switching, ESP32 microcontroller, and a browser-based wireless interface into a compact, 3D-printed, battery-powered device represents a significant step towards democratising electrochemical biosensing. The successful detection of clinically relevant analytes—including the uremic toxin p-cresol at femtomolar concentrations—demonstrates the platform's potential for impactful applications in kidney disease management, where affordable POC diagnostics could transform patient outcomes in resource-limited settings worldwide.

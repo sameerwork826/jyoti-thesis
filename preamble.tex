@@ -1,0 +1,114 @@
+% ============================================================
+%  PREAMBLE — IIT BHU Dual Degree Thesis
+% ============================================================
+
+% ---------- Page geometry ----------
+\usepackage[a4paper,
+            top=25mm, bottom=25mm,
+            left=38mm, right=20mm]{geometry}
+
+% ---------- Encoding & fonts ----------
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{newtxtext,newtxmath}   % Times-like font
+
+% ---------- Line spacing ----------
+\usepackage{setspace}
+\onehalfspacing
+
+% ---------- Header / footer ----------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\nouppercase{\leftmark}}
+\fancyhead[R]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \fancyfoot[C]{\small\thepage}
+  \renewcommand{\headrulewidth}{0pt}}
+
+% ---------- Chapter / section titles ----------
+\usepackage[explicit]{titlesec}
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\Large}
+  {\chaptertitlename\ \thechapter}{0pt}
+  {\MakeUppercase{#1}}
+\titlespacing*{\chapter}{0pt}{*2}{*3}
+
+% ---------- Graphics ----------
+\usepackage{graphicx}
+\usepackage{float}
+\graphicspath{{figures/}}
+
+% ---------- Captions ----------
+\usepackage[font=small,labelfont=bf,justification=justified]{caption}
+\usepackage{subcaption}
+
+% ---------- Tables ----------
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{multirow}
+
+% ---------- Mathematics ----------
+\usepackage{amsmath,amssymb,amsfonts}
+
+% ---------- Chemistry ----------
+\usepackage[version=4]{mhchem}
+\usepackage{siunitx}
+\sisetup{detect-all, range-phrase=--}
+
+% ---------- Colors ----------
+\usepackage[dvipsnames]{xcolor}
+
+% ---------- Listings (code) ----------
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  frame=single,
+  numbers=left,
+  numberstyle=\tiny,
+  keywordstyle=\color{NavyBlue}\bfseries,
+  commentstyle=\color{OliveGreen}\itshape,
+  stringstyle=\color{BrickRed},
+  backgroundcolor=\color{gray!8}
+}
+
+% ---------- Hyperlinks ----------
+\usepackage[colorlinks=true,
+            linkcolor=NavyBlue,
+            citecolor=OliveGreen,
+            urlcolor=BrickRed,
+            pdftitle={Development of a Low-Cost Multimodal Amperometric Device
+                      with Web-Based Monitoring Interface for Molecular Sensing},
+            pdfauthor={Arkya Jyoti Ghosh}]{hyperref}
+
+% ---------- Bibliography ----------
+\usepackage[numbers,sort&compress]{natbib}
+\bibliographystyle{unsrtnat}
+
+% ---------- Miscellaneous ----------
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{emptypage}
+\usepackage{pdfpages}
+
+% ---------- Custom shorthands ----------
+\newcommand{\ferrocene}{\ce{[Fe(CN)6]^{3-/4-}}}
+\newcommand{\ruhex}{\ce{[Ru(NH3)6]^{3+/2+}}}
+\newcommand{\LOD}{limit of detection}
+\newcommand{\LOQ}{limit of quantification}
+
+% ---------- Placeholder figure helper ----------
+% Usage: \placefig{width}{caption text}{label}
+\newcommand{\placefig}[3]{%
+  \begin{figure}[H]
+    \centering
+    \fbox{\rule{0pt}{0.35\textheight}\rule{#1}{0pt}}
+    \caption{#2}
+    \label{#3}
+  \end{figure}%
+}

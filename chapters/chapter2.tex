@@ -1,0 +1,231 @@
+\chapter{Literature Review}
+\label{ch:litreview}
+
+\section{Fundamentals of Electrochemical Sensing}
+\label{sec:electrochemistry_fundamentals}
+
+\subsection{The Three-Electrode Electrochemical Cell}
+\label{subsec:three_electrode}
+
+An electrochemical cell is a system in which chemical energy is interconverted with electrical energy at the interface between an electronic conductor (electrode) and an ionic conductor (electrolyte). For analytical applications involving controlled-potential experiments, the \textit{three-electrode cell} configuration is universally employed to decouple the potential control function from the current measurement function \cite{Bard2001}.
+
+The three electrodes are:
+\begin{itemize}
+    \item \textbf{Working electrode (WE):} The electrode at whose surface the analytical reaction of interest takes place. The potential of the WE is controlled with respect to the RE. Common WE materials include glassy carbon, gold, platinum, indium tin oxide (ITO), and carbon paste or screen-printed carbon.
+    \item \textbf{Reference electrode (RE):} An electrode of stable, well-defined potential against which the WE potential is measured. Common reference electrodes include the silver/silver chloride (Ag/AgCl, $E = +0.197$\,V vs.\ SHE in 3\,M KCl), saturated calomel electrode (SCE, $+0.241$\,V vs.\ SHE), and the standard hydrogen electrode (SHE). The RE passes negligible current.
+    \item \textbf{Counter electrode (CE):} Also called the auxiliary electrode, the CE completes the electrical circuit and carries the faradaic current. It is typically a platinum wire or a large-area carbon rod. By using a three-electrode configuration with a potentiostat, the uncompensated solution resistance ($R_\mathrm{u}$) between the RE and WE is minimised, enabling accurate potential control.
+\end{itemize}
+
+The potentiostat is the electronic instrument that controls $E_\mathrm{WE} - E_\mathrm{RE}$ and simultaneously measures the resulting current \cite{Kissinger1996}. The classical potentiostat circuit employs an electrometer amplifier (high-impedance voltage follower) to sense the RE potential, a summing (control) amplifier to force the WE potential to the desired set-point by driving current through the CE, and a current-to-voltage converter (transimpedance amplifier, TIA) to measure the cell current.
+
+\subsection{Faradaic and Non-Faradaic Currents}
+\label{subsec:faradaic}
+
+The total current flowing in an electrochemical cell has two components:
+\begin{equation}
+    i_\mathrm{total}(t) = i_\mathrm{F}(t) + i_\mathrm{C}(t)
+\end{equation}
+where $i_\mathrm{F}$ is the \textit{faradaic current} arising from electron-transfer reactions at the electrode surface (governed by Faraday's law: $Q = nFN$, where $N$ is the number of moles of electroactive species converted), and $i_\mathrm{C}$ is the \textit{non-faradaic} (capacitive or charging) current associated with the charging and discharging of the electrical double layer (EDL) at the electrode–solution interface \cite{Bard2001}. For analytical purposes the faradaic current carries the analytical signal, while the capacitive current constitutes noise, particularly at short time-scales following a potential step.
+
+\section{Chronoamperometry: Theory and Analysis}
+\label{sec:ca_theory}
+
+Chronoamperometry involves the application of a square potential step to the working electrode and recording of the resulting current transient as a function of time. Consider a potential step from an initial potential $E_i$ (where no faradaic reaction occurs) to a final potential $E_f$ (where the surface concentration of the electroactive species is driven to zero, i.e.\ diffusion-limited conditions). For a planar electrode in an unstirred solution, the current–time response is governed by the \textbf{Cottrell equation} \cite{Cottrell1902}:
+
+\begin{equation}
+    i(t) = \frac{nFACD^{1/2}}{\pi^{1/2} t^{1/2}}
+    \label{eq:cottrell}
+\end{equation}
+
+where:
+\begin{itemize}
+    \item $n$ = number of electrons transferred per molecule
+    \item $F$ = Faraday's constant ($96485\,\text{C mol}^{-1}$)
+    \item $A$ = electrode area (\si{\centi\metre\squared})
+    \item $C$ = bulk concentration of the electroactive species (\si{\mol\per\centi\metre\cubed})
+    \item $D$ = diffusion coefficient of the electroactive species (\si{\centi\metre\squared\per\second})
+    \item $t$ = time elapsed after the potential step (\si{\second})
+\end{itemize}
+
+Equation~\ref{eq:cottrell} predicts that $i \propto t^{-1/2}$; accordingly, a plot of $i$ versus $t^{-1/2}$ (a \textit{Cottrell plot}) should be linear with slope $m = nFACD^{1/2}/\pi^{1/2}$. This linearity can be exploited in two ways: (i)~to extract the diffusion coefficient $D$ of a known species (for device characterisation), and (ii)~to construct a calibration curve by plotting $m$ versus $C$ for analyte quantification.
+
+At short times after the potential step, the total current is dominated by the double-layer charging transient:
+\begin{equation}
+    i_\mathrm{C}(t) = \frac{\Delta E}{R_\mathrm{u}} \exp\!\left(-\frac{t}{R_\mathrm{u} C_\mathrm{dl}}\right)
+\end{equation}
+where $R_\mathrm{u}$ is the uncompensated resistance and $C_\mathrm{dl}$ is the double-layer capacitance. After this transient has decayed (typically within a few milliseconds for low-resistance aqueous electrolytes), the Cottrell behaviour dominates \cite{Bard2001}. In practice, CA data at early times are discarded and Cottrell analysis is applied to the $t > \tau_\mathrm{RC}$ portion of the transient.
+
+The analytical utility of CA is enhanced by its simplicity (a single potential step), its compatibility with any redox-active analyte, and its straightforward signal-to-concentration relationship. Moreover, the linear $i$ vs.\ $C$ relationship at a fixed time point $t^*$ provides a simple calibration:
+\begin{equation}
+    i(t^*) = \frac{nFAD^{1/2}}{\pi^{1/2} (t^*)^{1/2}} \cdot C
+\end{equation}
+enabling quantitative determination of $C$ from a single measurement.
+
+\section{Amperometric Biosensors}
+\label{sec:biosensors}
+
+Amperometric biosensors combine the selectivity of a biological recognition element (enzyme, antibody, aptamer, molecularly imprinted polymer, or whole cell) with the sensitivity of electrochemical transduction. The concept was pioneered by Leland Clark Jr.\ and Champ Lyons in 1962 with their demonstration of the first enzyme electrode: glucose oxidase immobilised on a platinum electrode for glucose detection \cite{Clark1962}. This device, the direct antecedent of today's blood glucose monitors, exploited the amperometric detection of \ce{H2O2} produced enzymatically:
+
+\begin{align}
+    \text{Glucose} + \ce{O2} &\xrightarrow{\text{GOx}} \text{Gluconolactone} + \ce{H2O2} \\
+    \ce{H2O2} &\rightarrow \ce{O2} + 2\,\ce{H+} + 2\,e^- \quad (E \approx +0.6\,\text{V vs.\ Ag/AgCl})
+\end{align}
+
+Since this seminal work, amperometric biosensors have been developed for a vast array of targets including cholesterol \cite{Pundir2013}, lactate \cite{Nikolaus2008}, cancer biomarkers \cite{Chandra2013}, heavy metals, pesticides, and pathogens \cite{Turner2013}. The analytical performance metrics used to characterise biosensors include:
+
+\begin{itemize}
+    \item \textbf{Sensitivity} ($S$): the slope of the calibration curve, expressed in \si{\ampere\per\molar} or \si{\micro\ampere\per\milli\molar\per\centi\metre\squared}.
+    \item \textbf{Limit of detection (LOD):} defined as $3\sigma/S$, where $\sigma$ is the standard deviation of the blank signal.
+    \item \textbf{Limit of quantification (LOQ):} defined as $10\sigma/S$.
+    \item \textbf{Linear dynamic range (LDR):} the concentration range over which the calibration is linear.
+    \item \textbf{Selectivity:} the ability to distinguish the target analyte from interferents.
+    \item \textbf{Stability:} the retention of analytical performance over time.
+\end{itemize}
+
+\section{Commercial Potentiostats and Their Limitations}
+\label{sec:commercial_potentiostats}
+
+High-performance potentiostats from established manufacturers offer exceptional specifications: sub-picoampere current resolution, potential accuracy in the microvolt range, multi-channel capability, and sophisticated software for electrochemical analysis. Table~\ref{tab:potentiostat_comparison} summarises representative instruments and their approximate costs.
+
+\begin{table}[H]
+\centering
+\caption{Comparison of selected commercial potentiostats and the device developed in this work.}
+\label{tab:potentiostat_comparison}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Instrument} & \textbf{Manufacturer} & \textbf{Interface} & \textbf{Portability} & \textbf{Approx.\ Cost} \\
+\midrule
+EmStat Pico  & PalmSense, NL  & USB/Bluetooth & Portable   & \texttildelow\rupee{}5,00,000 \\
+VSP-300      & Bio-Logic, FR  & USB/Ethernet  & Benchtop   & \texttildelow\rupee{}20,00,000 \\
+Reference 600 & Gamry, USA    & USB           & Benchtop   & \texttildelow\rupee{}18,00,000 \\
+CHI 660E     & CH Instruments & USB           & Benchtop   & \texttildelow\rupee{}12,00,000 \\
+\midrule
+\textbf{This work} & \textbf{IIT (BHU)} & \textbf{Wi-Fi (Web)} & \textbf{Handheld} & \textbf{\texttildelow\rupee{}5,000--7,000} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The cost of even the most affordable commercial instrument places it out of reach for undergraduate teaching laboratories, field monitoring programmes, and point-of-care settings in resource-limited environments. Furthermore, most commercial potentiostats require dedicated proprietary software running on a computer, precluding their use without a licensed workstation \cite{Ino2019}.
+
+\section{Open-Source and Low-Cost Potentiostat Platforms}
+\label{sec:opensource}
+
+The availability of inexpensive microcontrollers and precision analogue ICs has enabled a proliferation of open-source potentiostat designs. This section reviews the most influential contributions.
+
+\subsection{CheapStat}
+
+CheapStat, described by Rowe \textit{et al.}\ in 2011, was one of the first open-hardware potentiostats to gain wide recognition \cite{Rowe2011}. Built around an Atmel AVR microcontroller (ATmega32U4), it used a resistor ladder DAC for potential control and was capable of cyclic voltammetry, square wave voltammetry, and anodic stripping. The complete assembly cost was under \$80. However, its potential range was limited ($\pm 1.65$\,V), its current resolution was modest, and communication was via USB HID, requiring a host PC.
+
+\subsection{DStat}
+
+The DStat potentiostat, introduced by Dryden and Wheeler \cite{Dryden2015}, represented a significant improvement. Using a PSoC 5LP microcontroller and a precision DAC, DStat achieved $\pm 1.5$\,V potential range, 1\,nA current resolution, and a software-configurable gain transimpedance amplifier. The open-source Python client (dstatcom) provided a polished GUI. DStat requires USB connection to a computer for operation, limiting its portability.
+
+\subsection{RODEOSTAT}
+
+RODEOSTAT, developed by IO Rodeo, is an open-source potentiostat based on the Teensy 3.2 microcontroller. It supports CV, CA, and linear sweep voltammetry, with a web-based control interface via USB serial. Performance is competitive with entry-level commercial instruments, with a cost around \$150.
+
+\subsection{UWED}
+
+Ainla \textit{et al.}\ \cite{Ainla2018} presented the Unattended Wireless Electrochemical Detector (UWED), an early attempt at a truly wireless potentiostat using Bluetooth Low Energy (BLE). The UWED demonstrated that wireless communication was feasible for electrochemical data acquisition, though it was limited to BLE range and required a smartphone app.
+
+\subsection{ESP32-Based Systems}
+
+More recently, the ESP32's combination of processing power and Wi-Fi has attracted attention for electrochemical applications. Jenkins \textit{et al.}\ \cite{Jenkins2019} demonstrated a field-deployable sensor node using ESP32 for heavy metal detection. Wan \textit{et al.}\ \cite{Wan2020} reported an ESP32-based glucose sensor with a web server interface. However, these implementations either lacked precision DAC-based potential control or did not provide a multi-range TIA, limiting their current resolution and dynamic range. The device described in this thesis addresses these gaps by integrating a 16-bit DAC (AD5667R) and a quad-channel precision TIA (AD8608) with selectable gain, all implemented on a custom PCB.
+
+\section{IoT and Web-Based Sensing Platforms}
+\label{sec:iot}
+
+The Internet of Things (IoT) paradigm---in which physical sensors communicate via IP networks---has transformative potential for electrochemical sensing \cite{Bandodkar2019}. Key enabling technologies include:
+
+\begin{itemize}
+    \item \textbf{ESP32 AsyncWebServer:} An asynchronous HTTP server library that enables the ESP32 to serve static web pages and handle multiple concurrent HTTP requests without blocking the firmware.
+    \item \textbf{WebSockets (RFC 6455):} A full-duplex communication protocol over a single TCP connection. WebSocket enables the microcontroller to push real-time data to the browser at each sampling interval, enabling live graph updates without page refresh.
+    \item \textbf{SPIFFS / LittleFS:} Flash file systems on the ESP32 that allow static web assets (HTML, CSS, JavaScript) to be stored in flash memory and served on demand.
+    \item \textbf{Chart.js:} An open-source JavaScript library for responsive, interactive chart rendering in the browser, requiring no server-side computation.
+\end{itemize}
+
+This architecture allows a smartphone, tablet, or laptop to function as the display and control interface for the potentiostat without any dedicated software installation, making the system truly plug-and-play for end users \cite{Nemiroski2014}.
+
+\section{Detection of Target Analytes}
+\label{sec:analyte_review}
+
+\subsection{Ferri/Ferrocyanide and Ruthenium Hexamine as Electrochemical Standards}
+\label{subsec:redox_probes}
+
+The hexacyanoferrate couple \ferrocene{} undergoes a simple, reversible, outer-sphere one-electron transfer:
+\begin{equation}
+    \ce{[Fe(CN)6]^{3-} + e- <=> [Fe(CN)6]^{4-}}, \quad E^{0'} \approx +0.23\,\text{V vs.\ Ag/AgCl}
+\end{equation}
+Its diffusion coefficient in 0.1\,M KCl at 25\,\textdegree{}C is $D_\text{ox} = 7.2 \times 10^{-6}$\,cm$^2$\,s$^{-1}$ and $D_\text{red} = 6.7 \times 10^{-6}$\,cm$^2$\,s$^{-1}$ \cite{Konopka1970}. Its high solubility, chemical stability, and well-characterised kinetics make it the de facto standard for potentiostat validation.
+
+Ruthenium hexamine (\ruhex{}) undergoes a reversible outer-sphere single-electron reduction:
+\begin{equation}
+    \ce{[Ru(NH3)6]^{3+} + e- <=> [Ru(NH3)6]^{2+}}, \quad E^{0'} \approx -0.152\,\text{V vs.\ Ag/AgCl}
+\end{equation}
+Its electrode kinetics are among the fastest known ($k^0 > 1$\,cm\,s$^{-1}$ on many electrodes) and are essentially independent of surface chemistry \cite{McCreery2008}, providing a complementary validation of the device's potential control at negative potentials.
+
+\subsection{Hydrogen Peroxide Detection at Gold Electrodes}
+\label{subsec:h2o2}
+
+Hydrogen peroxide can be detected electrochemically by either oxidation:
+\begin{equation}
+    \ce{H2O2 -> O2 + 2H+ + 2e-} \quad (E_\text{ox} \approx +0.6\,\text{V vs.\ Ag/AgCl})
+\end{equation}
+or reduction:
+\begin{equation}
+    \ce{H2O2 + 2H+ + 2e- -> 2H2O} \quad (E_\text{red} \approx -0.2 \text{ to } -0.6\,\text{V, depending on electrode})
+\end{equation}
+Gold electrodes are particularly attractive for \ce{H2O2} oxidation because they exhibit lower overpotentials than carbon and are less susceptible to surface fouling than platinum \cite{Fanjul-Bolado2008}. Screen-printed gold electrodes (SPGEs) offer additional advantages of disposability and low cost. The electrocatalytic oxidation of \ce{H2O2} at gold surfaces has been exploited in numerous enzyme-based biosensors, and its detection with the present device validates the platform for downstream horseradish peroxidase (HRP)-based sandwich immunoassay architectures \cite{Wang2006}.
+
+\subsection{p-Cresol: Biochemistry, Clinical Significance, and Detection}
+\label{subsec:pcresol}
+
+\subsubsection{Biochemistry and Metabolic Fate}
+p-Cresol (4-methylphenol, MW = 108.14\,g\,mol$^{-1}$) is a phenolic compound produced exclusively by anaerobic gut bacteria through the deamination and decarboxylation of the aromatic amino acid tyrosine \cite{Vanholder2003}:
+\begin{equation}
+    \text{Tyrosine} \xrightarrow{\text{gut microbiota}} p\text{-cresol} \xrightarrow{\text{liver sulfotransferase}} p\text{-cresyl sulfate}
+\end{equation}
+In individuals with normal kidney function, p-cresyl sulfate (pCS) is efficiently cleared by the kidneys and excreted in urine. In CKD patients, particularly those on haemodialysis, pCS accumulates dramatically in plasma, reaching concentrations up to 200\,$\mu$M---several-fold above normal (\textless{}10\,$\mu$M) \cite{Vanholder2003, Ramezani2016}.
+
+\subsubsection{Clinical Significance}
+
+Multiple prospective cohort studies have established pCS and free p-cresol as independent risk factors for cardiovascular disease and all-cause mortality in dialysis patients \cite{Meijers2010, Liabeuf2010}. p-Cresol also disrupts endothelial cell function, inhibits leukocyte degranulation, and impairs phagocytic killing of bacteria \cite{Vanholder2003}. Its quantification in clinical samples is therefore valuable for CKD staging, dialysis adequacy assessment, and patient risk stratification.
+
+\subsubsection{Electrochemical Detection of p-Cresol}
+
+p-Cresol is electrochemically oxidisable via a $2e^-$/2H$^+$ mechanism at moderate anodic potentials \cite{Wang2006}. Its phenolic hydroxyl group undergoes irreversible oxidation at carbon or gold electrodes at $\approx+0.6$--$+0.8$\,V vs.\ Ag/AgCl, generating a quinone product. This direct electrochemistry can be used for label-free amperometric detection without enzymatic amplification. However, the high detection potential overlaps with electrochemical oxidation of common interferents such as uric acid and ascorbic acid, necessitating either selective electrode modification or the use of differential pulse voltammetry. Alternatively, enzyme-based (phenol oxidase, tyrosinase, laccase) architectures exploit the enzymatic oxidation of p-cresol to generate a catechol or quinone product for amperometric transduction \cite{Fanjul-Bolado2008}.
+
+Recent years have seen a surge in reports on ultra-sensitive p-cresol biosensors employing nanomaterial-modified electrodes \cite{Chandra2013}. Nanostructured gold, reduced graphene oxide, carbon quantum dots, and molecularly imprinted polymers (MIPs) have all been employed to extend the LDR to femtomolar concentrations and achieve LODs in the sub-picomolar range, exploiting signal amplification through increased electroactive surface area and selective analyte pre-concentration. The present work aims to exploit such an electrode platform in conjunction with the custom amperometric device to achieve comparable sensitivity.
+
+\section{Circuit Design Considerations for Low-Noise Potentiostats}
+\label{sec:circuit_design}
+
+\subsection{Transimpedance Amplifier Design}
+The TIA converts the cell current $i_\mathrm{cell}$ to a voltage $V_\mathrm{out} = -i_\mathrm{cell} \cdot R_f$, where $R_f$ is the feedback resistor \cite{Horowitz2015}. Key design considerations include:
+\begin{itemize}
+    \item \textbf{Input bias current:} The op-amp's input bias current adds an offset to the measured cell current. Precision op-amps such as the AD8608 (max $I_\text{bias} = 1$\,nA) are essential for low-current measurements.
+    \item \textbf{Gain-bandwidth product:} High $R_f$ values increase sensitivity but reduce the TIA bandwidth. A bandwidth of several hundred Hz is sufficient for CA experiments.
+    \item \textbf{Stability:} Feedback capacitor $C_f$ (typically 10--100\,pF) in parallel with $R_f$ is required to prevent oscillation when measuring high-impedance cells.
+    \item \textbf{Noise:} Johnson noise from $R_f$ sets the noise floor: $v_n = \sqrt{4kTR_f \Delta f}$, where $k$ is Boltzmann's constant and $\Delta f$ is the measurement bandwidth.
+\end{itemize}
+
+\subsection{Ground Plane Management}
+Analogue and digital circuits sharing a ground plane can suffer from digital switching noise (from the microcontroller and Wi-Fi transceiver) coupling into the sensitive analogue signal chain. The star-point (single-point) grounding topology separates AGND from DGND, connecting them only at a single low-impedance node near the power supply decoupling capacitors \cite{Horowitz2015}. This prevents digital return currents from flowing through the analogue ground plane, reducing interference to the sub-microampere level.
+
+\subsection{Power Supply Decoupling}
+Each analogue IC is decoupled with a 100\,nF ceramic capacitor placed as close as possible to the supply pins, supplemented by a 10\,$\mu$F bulk capacitor on the supply rail. This suppresses high-frequency supply noise and protects sensitive analogue ICs from transient disturbances caused by the ESP32's Wi-Fi radio transmissions, which can draw instantaneous currents of up to 240\,mA.
+
+\section{Summary}
+\label{sec:litreview_summary}
+
+This review has established that:
+\begin{enumerate}
+    \item Chronoamperometry at a three-electrode cell provides quantitative analyte concentration information via the Cottrell equation.
+    \item Commercial potentiostats are prohibitively expensive for widespread POC or teaching use.
+    \item Existing open-source instruments require tethered PC connections, limiting field utility.
+    \item The ESP32 SoC with integrated Wi-Fi, combined with a precision DAC and TIA, is an enabling technology for self-contained web-connected potentiostats.
+    \item p-Cresol is a clinically important uremic toxin for which an ultra-sensitive portable detection platform is urgently needed.
+    \item Careful PCB layout (star-ground, decoupling) is essential for low-noise electrochemical measurements.
+\end{enumerate}
+
+These findings directly motivate the design and implementation described in Chapter~\ref{ch:methods}.

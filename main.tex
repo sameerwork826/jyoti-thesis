@@ -1,0 +1,65 @@
+\documentclass[12pt,a4paper,oneside]{report}
+
+\input{preamble}
+
+\begin{document}
+
+% ============================================================
+%  FRONT MATTER
+% ============================================================
+\pagenumbering{roman}
+\input{frontmatter/title}
+\cleardoublepage
+
+\input{frontmatter/certificate}
+\cleardoublepage
+
+\input{frontmatter/declaration}
+\cleardoublepage
+
+\input{frontmatter/abstract}
+\cleardoublepage
+
+\input{frontmatter/acknowledgements}
+\cleardoublepage
+
+\tableofcontents
+\cleardoublepage
+
+\listoffigures
+\addcontentsline{toc}{chapter}{List of Figures}
+\cleardoublepage
+
+\listoftables
+\addcontentsline{toc}{chapter}{List of Tables}
+\cleardoublepage
+
+\input{frontmatter/abbreviations}
+\cleardoublepage
+
+% ============================================================
+%  MAIN MATTER
+% ============================================================
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\include{chapters/chapter1}
+\include{chapters/chapter2}
+\include{chapters/chapter3}
+\include{chapters/chapter4}
+\include{chapters/chapter5}
+
+% ============================================================
+%  BIBLIOGRAPHY
+% ============================================================
+\cleardoublepage
+\addcontentsline{toc}{chapter}{Bibliography}
+\bibliography{references/references}
+
+% ============================================================
+%  APPENDICES
+% ============================================================
+\appendix
+\include{appendices/appendixA}
+
+\end{document}

@@ -1,0 +1,73 @@
+\chapter{Introduction}
+\label{ch:intro}
+
+\section{Background and Motivation}
+\label{sec:background}
+
+The global burden of non-communicable diseases, environmental contaminants, and food safety hazards has created an urgent demand for rapid, sensitive, and affordable analytical tools that can function outside the confines of centralised laboratories \cite{Turner2013}. Electrochemical biosensors—devices that transduce biochemical recognition events into measurable electrical signals—have emerged as one of the most promising platforms to address this challenge. Their inherent miniaturisability, low power consumption, compatibility with batch microfabrication, and potential for real-time digital readout make them ideally suited for point-of-care (POC) diagnostics, environmental monitoring, and food quality assessment \cite{Drummond2003, Kimmel2012}.
+
+Among the various electroanalytical techniques, \textit{amperometry} and \textit{chronoamperometry} (CA) occupy a privileged position. Amperometric sensors operate by holding the working electrode at a fixed potential and measuring the resulting faradaic current, which is proportional to the analyte concentration. Chronoamperometry extends this principle to the time domain, providing rich mechanistic information about electrode kinetics, diffusion coefficients, and adsorption phenomena through the analysis of transient current–time (i–t) profiles \cite{Bard2001}. These techniques are employed in a wide range of important applications, from clinical glucose monitoring to heavy metal detection and enzyme-linked immunoassays \cite{Wang2006, Thevenot2001}.
+
+Despite their potential, the widespread deployment of amperometric biosensors has been hindered by the high cost of laboratory-grade potentiostats---the electronic instruments that precisely control and measure electrochemical cell potentials and currents. Commercial systems from manufacturers such as PalmSense (Netherlands), Gamry Instruments (USA), Bio-Logic (France), and CH Instruments (USA) are highly capable but cost between \$1,000 and \$30,000 per unit, which translates to \texttildelow\rupee{}80,000--\rupee{}25,00,000 in the Indian context. Even entry-level portable units such as the PalmSense EmStat Pico are priced at approximately \texttildelow\rupee{}5,00,000, placing them beyond the reach of resource-limited research groups, undergraduate teaching laboratories, field monitoring applications, and small-scale clinical facilities in low- and middle-income countries \cite{Ainla2018, Rowe2011}.
+
+This cost barrier has motivated a growing community of researchers, engineers, and makers to develop open-source and low-cost potentiostat platforms \cite{Glasscott2020, Dryden2015}. Early efforts such as the CheapStat, developed by Rowe \textit{et al.}\ at the University of California, Santa Barbara, demonstrated that a fully functional three-electrode potentiostat could be assembled for under \$80 using off-the-shelf components and open-source firmware \cite{Rowe2011}. Subsequent systems---including DStat \cite{Dryden2015}, UWED \cite{Ainla2018}, RODEOSTAT, and Sensit Smart---have progressively improved performance and ease of use. However, most of these systems rely on tethered USB connections to a host computer for data acquisition and visualisation, limiting their portability and ease of use in field settings.
+
+The advent of powerful, low-cost system-on-chip (SoC) microcontrollers with integrated wireless connectivity---most notably the Espressif ESP32 family---has opened entirely new possibilities for truly portable, self-contained electrochemical instruments \cite{Esquivel2017, Jenkins2019}. The ESP32-WROOM-32E module integrates a dual-core 240\,MHz Xtensa LX6 processor, 4\,MB flash memory, 520\,kB SRAM, and a full IEEE 802.11\,b/g/n Wi-Fi stack, all in a compact $18\times 20$\,mm package costing under \$5. When combined with a high-resolution digital-to-analogue converter (DAC), precision operational amplifiers, and range-switching analogue circuitry, the ESP32 forms the nucleus of a potentiostat that can serve its own web-based monitoring interface directly to any Wi-Fi-enabled device---eliminating the need for dedicated software installation or physical tethering.
+
+\section{Significance of Target Analytes}
+\label{sec:analytes}
+
+The validation of any new analytical platform requires a careful selection of analyte–electrode pairs that span a range of chemical complexity and biological relevance.
+
+\subsection{Ferri/Ferrocyanide Redox Couple}
+
+The hexacyanoferrate redox couple \ferrocene{} has been used for decades as a benchmark outer-sphere one-electron mediator for electrochemical device characterisation \cite{Bard2001}. Its well-established electrochemistry, known diffusion coefficient ($D \approx 7.2 \times 10^{-6}\,\text{cm}^2\,\text{s}^{-1}$ in 0.1\,M KCl), and insensitivity to most surface conditions make it ideal for validating the potential accuracy and current linearity of a new instrument \cite{Konopka1970}.
+
+\subsection{Ruthenium Hexamine}
+
+Ruthenium hexamine (\ruhex{}) is an outer-sphere one-electron redox probe whose rate constant is largely independent of electrode surface chemistry, making it a complementary standard to ferri/ferrocyanide for diagnosing the electrical (as opposed to chemical) properties of the electrode interface \cite{McCreery2008}. Its standard potential ($E^{0'} \approx -0.152$\,V vs.\ Ag/AgCl) is distinct from that of ferri/ferrocyanide, verifying the DAC's ability to address different potential windows.
+
+\subsection{Hydrogen Peroxide at Gold Electrodes}
+
+Hydrogen peroxide (\ce{H2O2}) is arguably the most important transduction species in enzyme-linked amperometric biosensors. Oxidases such as glucose oxidase (GOx), cholesterol oxidase, and lactate oxidase all generate \ce{H2O2} as a by-product of substrate oxidation, and its amperometric detection provides the analytical signal in a vast number of commercially successful biosensors \cite{Heller2008}. Gold (Au) screen-printed electrodes are widely used for \ce{H2O2} detection owing to their facile electro-oxidation catalysis and surface functionalisation chemistry \cite{Fanjul-Bolado2008}.
+
+\subsection{p-Cresol}
+
+Para-cresol (4-methylphenol, p-cresol) is a phenolic compound produced by the colonic fermentation of aromatic amino acids (tyrosine and phenylalanine) by gut microbiota \cite{Vanholder2003, Ramezani2016}. In healthy individuals, p-cresol is conjugated in the gut epithelium and liver, predominantly to p-cresyl sulfate (pCS), which is efficiently cleared by the kidneys. In patients with chronic kidney disease (CKD) and end-stage renal disease (ESRD), impaired clearance leads to significant accumulation of pCS and free p-cresol in plasma, where they exert direct cardiotoxic, nephrotoxic, and endothelial effects \cite{Meijers2010}. Serum p-cresol has consequently been identified as an independent predictor of cardiovascular mortality in dialysis patients, making it a clinically valuable biomarker \cite{Liabeuf2010}. The need for sensitive, rapid, and field-deployable detection of p-cresol over a wide dynamic range (femtomolar to millimolar) motivates its selection as a key analyte in the present work.
+
+\section{Objectives of the Present Work}
+\label{sec:objectives}
+
+The overarching aim of this thesis is to develop and rigorously validate a low-cost, portable, web-connected amperometric device that can perform chronoamperometric measurements across multiple analyte–electrode systems. The specific objectives are:
+
+\begin{enumerate}[label=\roman*.]
+    \item To design a custom printed circuit board (PCB) incorporating an ESP32-WROOM-32E microcontroller, a 16-bit dual-channel DAC (AD5667R), a quad-channel precision transimpedance amplifier (AD8608), and selectable gain resistors with analogue switching (MAX4643/MAX4644), implementing star-point grounding and separate analogue/digital power domains.
+
+    \item To develop firmware on the ESP32 Arduino platform implementing a complete chronoamperometry engine with configurable applied potential, acquisition duration, sampling interval, and current range, and to flash this firmware using an FTDI USB-to-UART programmer.
+
+    \item To design and deploy a browser-based monitoring interface served directly from the microcontroller over Wi-Fi, providing real-time graphical visualisation, parameter control, and data export in CSV and JSON formats.
+
+    \item To design a 3D-printed enclosure using Autodesk Fusion\,360 and fabricate it using a Prusa Mini FDM printer in PLA, providing a ruggedised and compact housing for the electronics.
+
+    \item To validate the assembled device against established electrochemical standards (\ferrocene{} and \ruhex{} in phosphate-buffered saline) and to demonstrate multi-analyte detection capability using \ce{H2O2}/gold and p-cresol systems.
+
+    \item To characterise the analytical performance metrics (sensitivity, \LOD, \LOQ, linear dynamic range, and repeatability) and to benchmark the device against commercial instruments, demonstrating a cost reduction of two orders of magnitude.
+\end{enumerate}
+
+\section{Scope of the Thesis}
+\label{sec:scope}
+
+The present work is focused exclusively on chronoamperometric (CA) measurements using a three-electrode electrochemical cell comprising a working electrode (WE), a reference electrode (RE), and a counter electrode (CE) in an aqueous electrolyte. While the hardware platform is designed to support additional electroanalytical techniques (e.g.\ cyclic voltammetry, differential pulse voltammetry) through firmware updates, this thesis addresses only CA. The device operates in the potential range achievable by the AD5667R DAC with the op-amp gain network implemented on the PCB. All experiments are conducted in a laboratory benchtop setting; the clinical or in-field deployment of the device is identified as future work.
+
+\section{Organisation of the Thesis}
+\label{sec:organisation}
+
+The remainder of this thesis is organised as follows:
+
+\textbf{Chapter 2} presents a comprehensive review of the literature relevant to the present work, covering the fundamentals of electrochemical sensing and chronoamperometry, commercial and open-source potentiostat platforms, ESP32-based IoT sensing, and the biochemistry and analytical detection of the target analytes.
+
+\textbf{Chapter 3} describes the materials and methods employed, including the detailed hardware design (circuit schematic, PCB layout, component selection rationale), firmware development, web interface implementation, 3D enclosure fabrication, and experimental protocols for chemical preparation and electrochemical measurements.
+
+\textbf{Chapter 4} presents and discusses the experimental results: PCB validation, device characterisation, chronoamperometric responses to each analyte, Cottrell analysis, calibration curves, and a comprehensive cost analysis.
+
+\textbf{Chapter 5} draws conclusions from the work, identifies its limitations, and proposes directions for future research including expanded analyte panels, additional electroanalytical techniques, and clinical validation studies.
